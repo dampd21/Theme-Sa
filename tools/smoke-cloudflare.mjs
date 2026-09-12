@@ -116,6 +116,7 @@ async function main() {
     throw new Error(
       "Worker deployed, but homepage readiness could not be verified.",
     );
+  await delay(5000); // Allow a newly published Worker version to reach the API edge.
   const request = async (path, method = "GET", body, cookie) => {
     const response = await fetch(url + path, {
       method,
@@ -191,7 +192,15 @@ async function main() {
       !Array.isArray(training.json.relays) ||
       "receipts" in training.json
     )
-      throw new Error("Live protected training read failed.");
+      throw new Error(
+        "Live protected training read failed (HTTP " +
+          training.response.status +
+          ", " +
+          (/^[A-Z_]{1,60}$/.test(training.json.error?.code || "")
+            ? training.json.error.code
+            : "unexpected response") +
+          ").",
+      );
     for (const payload of [
       login.json,
       session.json,
