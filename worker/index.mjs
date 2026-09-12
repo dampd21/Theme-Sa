@@ -27,7 +27,7 @@ function connection(env) {
   return c;
 }
 function configured(env) {
-  if (typeof env.SITE_PASSWORD !== 'string' || env.SITE_PASSWORD.trim().length < 12 || env.SITE_PASSWORD.length > 200 || typeof env.SESSION_SECRET !== 'string' || env.SESSION_SECRET.length < 32 || !/^github_pat_[A-Za-z0-9_]{20,}$/.test(env.DATA_REPO_TOKEN || '') || env.DATA_REPO_TOKEN.length > 255) fail(503, 'SETUP_REQUIRED', 'Cloudflare 서버 설정이 아직 준비되지 않았어요. 관리자에게 알려 주세요.');
+  if (typeof env.SITE_PASSWORD !== 'string' || env.SITE_PASSWORD.trim().length < 5 || env.SITE_PASSWORD.length > 200 || typeof env.SESSION_SECRET !== 'string' || env.SESSION_SECRET.length < 32 || !/^github_pat_[A-Za-z0-9_]{20,}$/.test(env.DATA_REPO_TOKEN || '') || env.DATA_REPO_TOKEN.length > 255) fail(503, 'SETUP_REQUIRED', 'Cloudflare 서버 설정이 아직 준비되지 않았어요. 관리자에게 알려 주세요.');
   connection(env);
 }
 function base64url(bytes) { let s = ''; for (const b of new Uint8Array(bytes)) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }

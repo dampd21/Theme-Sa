@@ -68,7 +68,7 @@ Cloudflare **My Profile → API Tokens → Create Token**으로 이동합니다.
 | 이름 | 값 |
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | 2번의 Cloudflare 배포용 API 토큰 |
-| `SITE_PASSWORD` | 팀 공용 비밀번호. 12자 이상, 길고 고유한 값 |
+| `SITE_PASSWORD` | 팀 공용 비밀번호. 5~200자 허용, 보안상 12자 이상 권장 |
 | `DATA_REPO_TOKEN` | 3번의 기록 저장소 전용 GitHub Fine-grained 토큰 |
 
 **Variables 탭**에 다음 값을 등록합니다.

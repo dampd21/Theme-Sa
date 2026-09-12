@@ -106,3 +106,18 @@ test('CSRF, tampered/expired sessions, password changes and login protection', a
   assert.equal((await worker.fetch(request('/api/session'), { ...env, DATA_REPO_TOKEN: 'ghp_' + 'a'.repeat(36) })).status, 503);
   assert.equal((await worker.fetch(request('/api/login', { method: 'POST', body: { password: env.SITE_PASSWORD } }), { ...env, LOGIN_RATE_LIMITER: undefined })).status, 503);
 });
+
+
+test('administrator-selected five-character password is supported', async () => {
+  const env = fakeEnvironment();
+  env.SITE_PASSWORD = 'Qa7x2'; // Synthetic test value, not the production password.
+  const good = await worker.fetch(request('/api/login', { method: 'POST', body: { password: env.SITE_PASSWORD } }), env);
+  assert.equal(good.status, 200);
+  const restored = await worker.fetch(request('/api/session', { cookie: sessionCookie(good) }), env);
+  assert.equal((await restored.json()).authenticated, true);
+  const wrong = await worker.fetch(request('/api/login', { method: 'POST', body: { password: 'Qa7x3' } }), env);
+  assert.equal(wrong.status, 401);
+  env.SITE_PASSWORD = 'Qa7x';
+  const tooShort = await worker.fetch(request('/api/login', { method: 'POST', body: { password: env.SITE_PASSWORD } }), env);
+  assert.equal(tooShort.status, 503);
+});

@@ -10,7 +10,7 @@ async function main() {
   if (!/^[a-f0-9]{32}$/i.test(process.env.CLOUDFLARE_ACCOUNT_ID)) throw new Error('CLOUDFLARE_ACCOUNT_ID must be your 32-character account ID.');
   if (/^(ghp_|github_pat_)/.test(process.env.CLOUDFLARE_API_TOKEN)) throw new Error('CLOUDFLARE_API_TOKEN must be a Cloudflare token, not a GitHub token.');
   const password = process.env.SITE_PASSWORD, token = process.env.DATA_REPO_TOKEN;
-  if (password.trim().length < 12 || password.length > 200) throw new Error('SITE_PASSWORD must be 12–200 characters. Choose a long, unique password.');
+  if (password.trim().length < 5 || password.length > 200) throw new Error('SITE_PASSWORD must be 5–200 characters. Longer, unique passwords are recommended.');
   if (!/^github_pat_[A-Za-z0-9_]{20,}$/.test(token) || token.length > 255) throw new Error('DATA_REPO_TOKEN must be a dedicated Fine-grained token for the private data repository.');
   if (!process.env.RUNNER_TEMP) throw new Error('RUNNER_TEMP is required so runtime secrets stay outside the repository.');
   const config = JSON.parse(await readFile('wrangler.jsonc', 'utf8'));
