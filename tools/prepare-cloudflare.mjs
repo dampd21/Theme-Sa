@@ -1,3 +1,4 @@
+import { validateRoom } from "../worker/room.mjs";
 // CI-only preparation. All actual secrets are written outside the repository.
 import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -243,6 +244,55 @@ async function main() {
       throw new Error("Private training backup mismatch; no deployment made.");
     console.log(
       "Existing training schema and exact private backup verified. Training records were not edited.",
+    );
+  }
+  // Room records are independent: never initialize or reset them during deployment.
+  const roomPath = contentPath + ".room.json";
+  const roomResponse = await git(
+    roomPath + "?ref=" + encodeURIComponent(branch),
+  );
+  if (roomResponse.status === 404)
+    console.log(
+      "No room file yet; first shared interaction will create it. No room data was initialized.",
+    );
+  else {
+    if (!roomResponse.ok)
+      throw new Error("Private room read failed; no deployment made.");
+    const file = await roomResponse.json();
+    try {
+      if (
+        file.type !== "file" ||
+        file.encoding !== "base64" ||
+        file.size > 800000 ||
+        !/^[a-f0-9]{40,64}$/.test(file.sha || "")
+      )
+        throw new Error();
+      const bytes = Buffer.from(file.content, "base64");
+      if (bytes.length > 800000) throw new Error();
+      validateRoom(
+        JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
+      );
+    } catch {
+      throw new Error(
+        "Room schema compatibility check failed. Existing room data is unchanged; no deployment made.",
+      );
+    }
+    const backup = roomPath + ".before-update-" + file.sha + ".json";
+    const existing = await git(backup + "?ref=" + encodeURIComponent(branch));
+    if (existing.status === 404) {
+      const saved = await git(backup, "PUT", {
+        message: "Back up private room before deployment",
+        content: file.content.replace(/\s/g, ""),
+        branch,
+      });
+      if (!saved.ok || (await saved.json()).content?.sha !== file.sha)
+        throw new Error(
+          "Exact private room backup failed; no deployment made.",
+        );
+    } else if (!existing.ok || (await existing.json()).sha !== file.sha)
+      throw new Error("Private room backup mismatch; no deployment made.");
+    console.log(
+      "Existing room schema and exact private backup verified. Room records were not edited.",
     );
   }
   await writeFile(

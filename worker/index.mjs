@@ -1,3 +1,4 @@
+import { roomRoute } from "./room.mjs";
 import { trainingRoute } from "./training.mjs";
 import { normalize, differences, purgeExpired } from "../site/model.mjs";
 const COOKIE = "__Host-theme_sa";
@@ -636,15 +637,30 @@ async function apiRoute(request, env) {
     );
   const trainingPath =
     path === "/api/training" || path.startsWith("/api/training/");
-  if (path !== "/api/archive" && !trainingPath)
+  const roomPath = path === "/api/room";
+  if (path !== "/api/archive" && !trainingPath && !roomPath)
     fail(404, "NOT_FOUND", "요청한 기능을 찾을 수 없어요.");
-  if (!(trainingPath ? ["GET", "POST"] : ["GET", "PUT"]).includes(method))
+  if (
+    !(trainingPath || roomPath ? ["GET", "POST"] : ["GET", "PUT"]).includes(
+      method,
+    )
+  )
     fail(405, "METHOD", "지원하지 않는 요청이에요.");
   if (!env.API_RATE_LIMITER?.limit)
     fail(503, "RATE_LIMIT_SETUP", "서버 요청 보호 설정이 준비되지 않았어요.");
   if (!(await env.API_RATE_LIMITER.limit({ key: session.jti })).success)
     fail(429, "API_RATE_LIMIT", "요청이 많아요. 잠시 후 다시 시도해 주세요.", {
       "Retry-After": "60",
+    });
+  if (roomPath)
+    return roomRoute(request, env, session, {
+      fail,
+      json,
+      github,
+      privateRepo,
+      filePath,
+      getArchive,
+      readJson,
     });
   if (trainingPath)
     return trainingRoute(request, env, session, {

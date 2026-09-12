@@ -46,11 +46,23 @@ async function verifyLiveScreens(url, cookie, memberId) {
         "dashboard",
         "training",
         "rankings",
+        "room",
+        "room/mystery",
+        "room/words",
+        "room/art",
+        "room/maze",
         ...(memberId ? ["member/" + encodeURIComponent(memberId)] : []),
       ]) {
         await page.evaluate((h) => (location.hash = h), hash);
-        const selector =
-          hash === "dashboard"
+        const selector = hash.startsWith("room")
+          ? {
+              room: ".room-stage",
+              "room/mystery": ".room-case-steps",
+              "room/words": "#wordInput",
+              "room/art": "#inkCanvas",
+              "room/maze": "#mazeMap",
+            }[hash]
+          : hash === "dashboard"
             ? ".dash-hero"
             : hash === "training"
               ? ".game-grid"
@@ -142,6 +154,8 @@ async function main() {
     throw new Error("Anonymous archive access did not return 401.");
   if ((await request("/api/training")).response.status !== 401)
     throw new Error("Anonymous training access did not return 401.");
+  if ((await request("/api/room")).response.status !== 401)
+    throw new Error("Anonymous room access was not denied.");
   const login = await request("/api/login", "POST", {
     password: process.env.SITE_PASSWORD,
   });
@@ -201,11 +215,28 @@ async function main() {
             : "unexpected response") +
           ").",
       );
+    const room = await request("/api/room", "GET", undefined, cookie);
+    if (
+      !room.response.ok ||
+      room.json.version !== 1 ||
+      !Array.isArray(room.json.clues) ||
+      "receipts" in room.json
+    )
+      throw new Error(
+        "Live protected room read failed (HTTP " +
+          room.response.status +
+          ", " +
+          (/^[A-Z_]{1,60}$/.test(room.json.error?.code || "")
+            ? room.json.error.code
+            : "unexpected response") +
+          ").",
+      );
     for (const payload of [
       login.json,
       session.json,
       archive.json,
       training.json,
+      room.json,
     ])
       if (
         process.env.DATA_REPO_TOKEN &&
@@ -225,7 +256,7 @@ async function main() {
     await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
   console.log("LIVE_SITE_URL=" + url + "/");
   console.log(
-    "Live password login, session cookie, anonymous denial archive/training reads and read-only desktop/mobile dashboard screens checked. No production records were modified.",
+    "Live password login, session cookie, anonymous denial archive/training/room reads and read-only desktop/mobile dashboard and room screens checked. No production records were modified.",
   );
 }
 main().catch((error) => {

@@ -1,3 +1,4 @@
+import { createRoomUI } from "./room-ui.mjs";
 import { createTrainingUI } from "./training-ui.mjs";
 import {
   normalize,
@@ -71,6 +72,25 @@ const trainingUI = createTrainingUI({
     if (logged && !busy && !pending && !dirty()) render();
   },
 });
+const roomUI = createRoomUI({
+  api,
+  getState: () => state,
+  getActor: () => actor,
+  esc,
+  toast,
+  requireActor,
+  needLogin,
+  refreshView: () => {
+    if (
+      logged &&
+      !busy &&
+      !pending &&
+      !dirty() &&
+      ["room", "dashboard"].includes(route().key)
+    )
+      render();
+  },
+});
 const person = (id) =>
   state.members.find((m) => m.id === id)?.name ||
   state.trash.find((t) => t.id === id)?.member.name ||
@@ -114,7 +134,8 @@ function dirty() {
   return (
     ($("editor").open && signature() !== editorBaseline) ||
     !!$("commentText")?.value.trim() ||
-    trainingUI.isActive()
+    trainingUI.isActive() ||
+    roomUI.isDirty()
   );
 }
 function signature() {
@@ -252,7 +273,7 @@ function needLogin() {
   $("reauthPassword").focus();
 }
 $("logoutButton").onclick = async () => {
-  if (busy) return;
+  if (busy || roomUI.isSaving()) return;
   if (
     (dirty() || pending) &&
     !confirm("저장하지 않은 내용이 사라져요. 로그아웃할까요?")
@@ -263,6 +284,7 @@ $("logoutButton").onclick = async () => {
     epoch++;
     logged = false;
     trainingUI.reset();
+    roomUI.reset();
     state = emptyState();
     sha = null;
     pending = null;
@@ -316,6 +338,7 @@ const navSections = [
     [
       ["dashboard", "대시보드", "◈"],
       ["members", "팀원 기록실", "◫"],
+      ["room", "살아 있는 기록실", "☽"],
       ["training", "퇴마 훈련소", "⚔"],
       ["rankings", "훈련 랭킹", "♛"],
       ["organization", "직함 · 조직도", "⌘"],
@@ -389,7 +412,12 @@ function render() {
     )
     .join("");
   saving(busy);
-  if (r.key === "dashboard") trainingUI.renderDashboard();
+  if (r.key === "dashboard") {
+    trainingUI.renderDashboard();
+    document
+      .querySelector(".dash-hero")
+      ?.insertAdjacentHTML("afterend", roomUI.teaser());
+  } else if (r.key === "room") roomUI.render();
   else if (r.key === "training") trainingUI.renderTraining(r.id);
   else if (r.key === "rankings") trainingUI.renderRanks(r.id);
   else if (r.key === "members") renderMembers();
@@ -410,7 +438,7 @@ function render() {
   }
 }
 window.addEventListener("hashchange", () => {
-  if (busy) {
+  if (busy || roomUI.isSaving()) {
     history.replaceState(null, "", lastHash || "#members");
     toast("저장 중입니다. 잠시만 기다려 주세요.");
     return;
@@ -423,6 +451,7 @@ window.addEventListener("hashchange", () => {
     return;
   }
   if (trainingUI.isActive()) trainingUI.cancel(false);
+  roomUI.cancel();
   if ($("editor").open) closeDialog("editor", true);
   lastHash = location.hash;
   $("sidebar").classList.remove("open");
@@ -433,7 +462,7 @@ window.addEventListener("hashchange", () => {
 });
 $("refreshButton").onclick = () => refresh(false);
 async function refresh(silent) {
-  if (!logged || busy) return;
+  if (!logged || busy || roomUI.isSaving()) return;
   if (trainingUI.isActive()) {
     if (silent) return;
     if (!confirm("진행 중인 게임을 중단하고 최신 기록을 불러올까요?")) return;
@@ -455,12 +484,20 @@ async function refresh(silent) {
     )
   )
     return;
+  if (!silent) roomUI.cancel();
+  if (["room", "dashboard"].includes(route().key)) roomUI.load(!silent);
   trainingUI.load(!silent);
   const currentEpoch = epoch,
     revision = sha;
   try {
     const data = await api("archive");
-    if (currentEpoch !== epoch || !logged || revision !== sha) return;
+    if (
+      currentEpoch !== epoch ||
+      !logged ||
+      revision !== sha ||
+      roomUI.isDirty()
+    )
+      return;
     if (
       silent &&
       (busy || pending || dirty() || document.querySelector("dialog[open]"))
