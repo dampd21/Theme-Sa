@@ -33,6 +33,35 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Generate public connection settings
+        env:
+          ARCHIVE_OWNER: ${{ vars.ARCHIVE_OWNER }}
+          ARCHIVE_REPO: ${{ vars.ARCHIVE_REPO }}
+          ARCHIVE_BRANCH: ${{ vars.ARCHIVE_BRANCH }}
+          ARCHIVE_PATH: ${{ vars.ARCHIVE_PATH }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          owner = os.environ.get('ARCHIVE_OWNER', '').strip()
+          repo = os.environ.get('ARCHIVE_REPO', '').strip()
+          branch = os.environ.get('ARCHIVE_BRANCH', '').strip() or 'main'
+          path = os.environ.get('ARCHIVE_PATH', '').strip() or 'data/team.json'
+          if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,99}', owner):
+              raise SystemExit('Set the ARCHIVE_OWNER repository variable in Settings > Secrets and variables > Actions > Variables.')
+          if not re.fullmatch(r'[A-Za-z0-9_.-]{1,100}', repo) or repo in ('.', '..'):
+              raise SystemExit('Set ARCHIVE_REPO to your PRIVATE data repository name in Actions Variables.')
+          if not branch or len(branch) > 150 or re.search(r'[\s?#\\]', branch) or '..' in branch:
+              raise SystemExit('Invalid ARCHIVE_BRANCH.')
+          if len(path) > 200 or not path.endswith('.json') or any(p in ('', '.', '..') for p in path.split('/')) or re.search(r'[\x00-\x1f?#\\]', path):
+              raise SystemExit('Invalid ARCHIVE_PATH. Example: data/team.json')
+          settings = {'owner': owner, 'repo': repo, 'branch': branch, 'path': path}
+          Path('site/config.js').write_text(
+              '// PUBLIC repository coordinates. No passwords or tokens.\n'
+              + 'window.ARCHIVE_CONFIG = Object.freeze('
+              + json.dumps(settings, ensure_ascii=True, indent=2)
+              + ');\n', encoding='utf-8')
+          PY
       - name: Verify public website artifact
         run: |
           python3 - <<'PYTHON'
