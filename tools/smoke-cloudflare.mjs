@@ -128,7 +128,7 @@ async function main() {
     throw new Error(
       "Worker deployed, but homepage readiness could not be verified.",
     );
-  await delay(5000); // Allow a newly published Worker version to reach the API edge.
+  await delay(20000); // Allow new assets, code and session secrets to reach the API edge.
   const request = async (path, method = "GET", body, cookie) => {
     const response = await fetch(url + path, {
       method,
@@ -156,23 +156,40 @@ async function main() {
     throw new Error("Anonymous training access did not return 401.");
   if ((await request("/api/room")).response.status !== 401)
     throw new Error("Anonymous room access was not denied.");
-  const login = await request("/api/login", "POST", {
-    password: process.env.SITE_PASSWORD,
-  });
-  if (!login.response.ok || !login.json.authenticated)
-    throw new Error(
-      "Live password login check failed (HTTP " + login.response.status + ").",
+  let cookie = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await delay(15000);
+    const login = await request("/api/login", "POST", {
+      password: process.env.SITE_PASSWORD,
+    });
+    if (!login.response.ok || !login.json.authenticated)
+      throw new Error(
+        "Live password login check failed (HTTP " +
+          login.response.status +
+          ").",
+      );
+    const setCookie = login.response.headers.get("Set-Cookie") || "";
+    for (const expected of [
+      "__Host-theme_sa=",
+      "HttpOnly",
+      "Secure",
+      "SameSite=Strict",
+    ])
+      if (!setCookie.includes(expected))
+        throw new Error("Required session cookie protection was not found.");
+    cookie = setCookie.split(";")[0];
+    const restored = await request("/api/session", "GET", undefined, cookie);
+    if (restored.response.ok && restored.json.authenticated) break;
+    if (attempt === 2)
+      throw new Error(
+        "Live session restoration remained inconsistent after propagation grace (HTTP " +
+          restored.response.status +
+          ").",
+      );
+    console.log(
+      "New deployment session is not consistent yet; waiting before a fresh read-only verification session.",
     );
-  const setCookie = login.response.headers.get("Set-Cookie") || "";
-  for (const expected of [
-    "__Host-theme_sa=",
-    "HttpOnly",
-    "Secure",
-    "SameSite=Strict",
-  ])
-    if (!setCookie.includes(expected))
-      throw new Error("Required session cookie protection was not found.");
-  const cookie = setCookie.split(";")[0];
+  }
   let archiveStatus = "verified";
   try {
     const session = await request("/api/session", "GET", undefined, cookie);
