@@ -1,0 +1,59 @@
+name: Deploy Theme-Sa to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'worker/**'
+      - 'tools/**'
+      - 'wrangler.jsonc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/cloudflare.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: theme-sa-cloudflare
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked tooling
+        run: npm ci
+      - name: Validate server and public client
+        run: |
+          npm test
+          npm run check:client
+      - name: Prepare and deploy Worker with private server secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          ARCHIVE_OWNER: ${{ vars.ARCHIVE_OWNER }}
+          ARCHIVE_REPO: ${{ vars.ARCHIVE_REPO }}
+          ARCHIVE_BRANCH: ${{ vars.ARCHIVE_BRANCH }}
+          ARCHIVE_PATH: ${{ vars.ARCHIVE_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$RUNNER_TEMP/theme-sa-runtime-secrets.json" "$RUNNER_TEMP/theme-sa-deploy.log"' EXIT
+          node tools/prepare-cloudflare.mjs
+          npx wrangler deploy --secrets-file "$RUNNER_TEMP/theme-sa-runtime-secrets.json" | tee "$RUNNER_TEMP/theme-sa-deploy.log"
+          node tools/smoke-cloudflare.mjs

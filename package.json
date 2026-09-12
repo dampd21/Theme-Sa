@@ -1,0 +1,14 @@
+{
+  "name": "theme-sa-cloudflare",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test worker/worker.test.mjs",
+    "check:client": "node tools/check-client.mjs",
+    "dev": "wrangler dev --ip 0.0.0.0 --port 3000",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": { "wrangler": "4.131.1" }
+}

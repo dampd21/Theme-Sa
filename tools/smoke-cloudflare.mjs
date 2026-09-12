@@ -1,0 +1,46 @@
+// Runs inside the authenticated CI job. Never prints passwords, cookies, keys or records.
+import { readFile, appendFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function main() {
+  const log = await readFile(join(process.env.RUNNER_TEMP, 'theme-sa-deploy.log'), 'utf8');
+  const urls = log.match(/https:\/\/theme-sa\.[a-z0-9-]+\.workers\.dev\b/g) || [];
+  const url = urls.at(-1);
+  if (!url) throw new Error('Worker deployed, but its workers.dev URL could not be detected. Check the deployment log.');
+  let ready = false;
+  for (let i = 0; i < 6; i++) {
+    try { const response = await fetch(url + '/', { redirect: 'error', signal: AbortSignal.timeout(15000) }); if (response.ok && (await response.text()).includes('id="sharedPassword"')) { ready = true; break; } } catch { /* brief workers.dev propagation delay */ }
+    await delay(5000);
+  }
+  if (!ready) throw new Error('Worker deployed, but homepage readiness could not be verified.');
+  const request = async (path, method = 'GET', body, cookie) => {
+    const response = await fetch(url + path, { method, headers: { Accept: 'application/json', ...(body ? { Origin: url, 'Content-Type': 'application/json' } : {}), ...(cookie ? { Cookie: cookie } : {}) }, body: body ? JSON.stringify(body) : undefined, redirect: 'error', signal: AbortSignal.timeout(25000) });
+    let json; try { json = await response.json(); } catch { throw new Error('Live API returned a non-JSON response.'); }
+    return { response, json };
+  };
+  const anonymous = await request('/api/archive');
+  if (anonymous.response.status !== 401) throw new Error('Anonymous archive access did not return 401.');
+  const login = await request('/api/login', 'POST', { password: process.env.SITE_PASSWORD });
+  if (!login.response.ok || !login.json.authenticated) throw new Error('Live password login check failed (HTTP ' + login.response.status + ').');
+  const setCookie = login.response.headers.get('Set-Cookie') || '';
+  for (const expected of ['__Host-theme_sa=', 'HttpOnly', 'Secure', 'SameSite=Strict']) if (!setCookie.includes(expected)) throw new Error('Required session cookie protection was not found.');
+  const cookie = setCookie.split(';')[0];
+  let archiveStatus = 'verified';
+  try {
+    const session = await request('/api/session', 'GET', undefined, cookie);
+    if (!session.response.ok || !session.json.authenticated) throw new Error('Live session restoration check failed.');
+    const archive = await request('/api/archive', 'GET', undefined, cookie);
+    if (archive.response.status === 404 && archive.json.error?.code === 'ARCHIVE_NOT_INITIALIZED') archiveStatus = 'not initialized; create the first archive in the UI';
+    else if (!archive.response.ok || archive.json.state?.version !== 1 || !Array.isArray(archive.json.state?.members)) throw new Error('Live private archive read failed (HTTP ' + archive.response.status + ').');
+    for (const payload of [login.json, session.json, archive.json]) if (process.env.DATA_REPO_TOKEN && JSON.stringify(payload).includes(process.env.DATA_REPO_TOKEN)) throw new Error('Server credential unexpectedly appeared in an API response.');
+    // Read-only smoke check: never create, edit or delete production team records in CI.
+  } finally {
+    await request('/api/logout', 'POST', {}, cookie);
+  }
+  const summary = `## Cloudflare 홈페이지\n\n[기록실 열기](${url}/)\n\n- 실제 홈페이지, 비밀번호 로그인, 보호된 쿠키와 세션 확인 완료\n- 비로그인 기록 접근 차단 확인\n- 비공개 기록 읽기: ${archiveStatus}\n- 운영 기록을 수정하지 않는 점검입니다. 첫 저장은 홈페이지에서 확인하세요.\n- 새 배포는 이전 로그인 세션을 만료시킵니다.\n- 새 주소가 확인되기 전에는 기존 GitHub Pages를 삭제하지 마세요.\n`;
+  if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
+  console.log('LIVE_SITE_URL=' + url + '/');
+  console.log('Live password login, session cookie, anonymous denial and archive read checks completed. No production records were modified.');
+}
+main().catch(error => { console.error(error.message); process.exitCode = 1; });
