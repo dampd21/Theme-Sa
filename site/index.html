@@ -1,389 +1,169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#101614">
-<meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-/m/+YG2K3Q3b/PvOI9UqczLKN0tXxa7T2vlDqEsbaEs='; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>비밀 기록실 · GitHub 공동 기록</title>
-<style>
-:root{--bg:#101614;--panel:#171e1b;--panel2:#1b2420;--line:#2c3731;--muted:#94a49a;--text:#eef0e8;--green:#b8dfb3;--green2:#84b89b;--gold:#dcc396;--red:#eea99e;--side:236px}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:14px;line-height:1.6}button,input,select,textarea{font:inherit}button{cursor:pointer}button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}button{color:inherit}button:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:5px}button:disabled{opacity:.4;cursor:not-allowed}button svg{pointer-events:none}svg{display:block}a{color:inherit;text-decoration:none}button{border:0}input,select,textarea{width:100%;border:1px solid #3a483f;border-radius:8px;color:var(--text);background:#111915;padding:11px 13px;outline:none;transition:.2s}input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px #b8dfb30e}input::placeholder,textarea::placeholder{color:#6d8174}textarea{resize:vertical;min-height:90px}input[type=checkbox]{width:17px;height:17px;accent-color:var(--green);padding:0}select{cursor:pointer;color-scheme:dark}option{background:#18221c}h1,h2,h3,p{margin:0}.icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}.eyebrow{font-size:10px;letter-spacing:2.5px;font-weight:600;color:var(--green2)}.muted{color:var(--muted)}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.sidebar{width:var(--side);position:fixed;inset:0 auto 0 0;border-right:1px solid var(--line);background:#131a17;display:flex;flex-direction:column;padding:31px 22px 23px;z-index:20}.brand{display:flex;gap:12px;align-items:center;padding:0 10px}.brand-mark{color:var(--green);width:34px;height:42px}.brand strong{font-size:19px;letter-spacing:2px}.brand span{display:block;font-size:8px;letter-spacing:2.1px;color:#93a192;margin-top:2px}.side-team{margin-top:42px;padding:17px 13px;border:1px solid var(--line);border-radius:9px;background:#19221c}.side-team .small{font-size:10px;color:var(--muted);letter-spacing:1px}.side-team-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:6px}.side-team strong{font-size:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 9px #b8dfb329}.nav-label{margin:32px 13px 12px;font-size:10px;letter-spacing:2px;color:#718176}.nav{display:flex;flex-direction:column;gap:5px}.nav button{display:flex;align-items:center;text-align:left;gap:12px;background:none;color:#9aaa9f;padding:12px 14px;border-radius:7px;font-size:13px;transition:.2s}.nav button:hover{background:#202a23;color:var(--text)}.nav button.active{background:#26352a;color:#c8e6bd;border:1px solid #344938;padding:11px 13px}.nav .count{margin-left:auto;border:1px solid #4c654d;border-radius:4px;padding:0px 6px;font-size:10px}.side-bottom{margin-top:auto;padding-top:32px}.privacy-note{padding:15px 13px;border-radius:8px;border:1px dashed #354236;color:#98aa99}.privacy-note .icon{width:16px;height:16px;color:var(--green)}.privacy-note strong{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;color:#bacbb6}.privacy-note p{margin-top:8px;font-size:10px;line-height:1.8;color:#7e9283}.side-footer{display:flex;justify-content:space-between;margin:23px 7px 0;color:#5e7465;font-size:9px;letter-spacing:1px}.main{margin-left:var(--side)}.topbar{height:82px;border-bottom:1px solid var(--line);padding:0 44px;display:flex;align-items:center;justify-content:space-between;gap:16px}.breadcrumb{display:flex;align-items:center;gap:12px;font-size:12px;color:#93a296}.breadcrumb span:last-child{color:#dce2d8}.breadcrumb .icon{width:14px;height:14px}.top-actions{display:flex;gap:18px;align-items:center}.save-state{display:flex;align-items:center;gap:7px;font-size:11px;color:#91ae96}.save-state .icon{width:14px;height:14px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:7px;padding:10px 15px;font-size:12px;font-weight:600;line-height:1.5;transition:background .2s,transform .2s;white-space:nowrap}.btn:hover{transform:translateY(-1px)}.btn-primary{background:var(--green);color:#1b3422;border:1px solid var(--green)}.btn-primary:hover{background:#c9ecc4}.btn-outline{background:#1b231f;border:1px solid #3a463e;color:#d4ddd0}.btn-outline:hover{background:#273229}.btn-ghost{background:transparent;color:var(--muted);padding:7px}.btn-ghost:hover{color:var(--green);background:#263127}.btn-danger{background:#412923;color:#f2b1a6;border:1px solid #684138}.btn .icon{width:15px;height:15px}.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:none;color:var(--muted)}.icon-btn:hover{background:#303f32;color:var(--green)}.content{max-width:1440px;margin:auto;padding:35px 44px 22px}.page-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px;gap:20px}.page-heading h1{font-size:26px;letter-spacing:-1px;font-weight:700}.heading-title{display:flex;gap:13px;align-items:center}.outline-label{border:1px solid #405039;color:#bbcc9e;padding:2px 7px;border-radius:4px;font-size:9px;letter-spacing:1px}.page-heading p{color:var(--muted);font-size:12px;margin-top:5px}.date{font-size:10px;letter-spacing:.7px;color:#859c8a;text-align:right}.date span{display:block;margin-top:3px;font-size:9px;color:#5e7768}.hero{position:relative;overflow:hidden;min-height:258px;display:flex;align-items:center;border:1px solid #3a4a3b;border-radius:13px;background:linear-gradient(112deg,#243027 0%,#1d2a22 57%,#223629 100%)}.hero:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' opacity='.10' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.26}.hero-copy{position:relative;z-index:2;padding:33px 36px;width:65%}.hero-kicker{display:flex;align-items:center;gap:8px;color:#b7ccaf;font-size:10px;letter-spacing:1.2px}.hero-kicker:before{content:"";width:19px;height:1px;background:#abc2a0}.hero h2{font-size:29px;font-weight:500;line-height:1.55;letter-spacing:-1px;margin-top:13px}.hero h2 em{font-style:normal;color:#c3e0ad}.hero-copy>p{font-size:11px;color:#a0b19e;line-height:1.9;margin-top:12px}.hero-bottom{display:flex;gap:14px;align-items:center;margin-top:22px}.hero-bottom .team-pill{color:#cadfc0;font-size:10px;border:1px solid #526549;border-radius:4px;padding:3px 9px;display:flex;align-items:center;gap:6px;max-width:210px}.team-pill span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.hero-bottom>span{font-size:9px;letter-spacing:1.5px;color:#7f967d}.hero-art{position:absolute;right:9px;width:350px;height:300px;top:-16px;color:#aec496;pointer-events:none}.hero-art svg{width:100%;height:100%}.hero-index{position:absolute;right:21px;bottom:15px;color:#7f997c;font-size:8px;letter-spacing:2px}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 32px;gap:15px}.stat{border:1px solid var(--line);border-radius:9px;padding:19px 21px;display:flex;gap:15px;align-items:center;background:var(--panel)}.stat-icon{display:flex;justify-content:center;align-items:center;width:39px;height:39px;border-radius:9px;background:#253329;color:#a2c29a;border:1px solid #344638}.stat-icon.gold{background:#302e22;color:#d2bc84;border-color:#433f2d}.stat-icon.gray{background:#23302e;color:#97bfb1;border-color:#354740}.stat-label{font-size:10px;color:#9cad9e}.stat-value{margin-top:2px;font-size:23px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}.stat-value small{font-size:11px;font-weight:400;color:#8c9e91;margin-left:5px}.stat-sub{margin-left:auto;font-size:9px;color:#7f9884;border:1px solid #36493a;border-radius:4px;padding:2px 6px}.stat-value.status{font-size:14px;margin-top:5px;font-weight:500}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 272px;gap:24px;align-items:start}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:17px}.section-title{display:flex;align-items:center;gap:9px}.section-title h2{font-size:17px;letter-spacing:-.5px}.section-title .number{font-size:10px;color:#aabd9c;padding:0 6px;background:#263326;border:1px solid #384b35;border-radius:4px}.section-head p{font-size:10px;color:var(--muted);margin-top:3px}.toolbar{display:flex;gap:8px;margin-bottom:15px}.search{position:relative;flex:1;min-width:70px}.search .icon{position:absolute;left:12px;top:12px;width:15px;height:15px;color:#728778}.search input{padding:9px 12px 9px 35px;font-size:11px;border-color:var(--line);background:#151d18;height:39px}.toolbar select{width:111px;font-size:10px;padding:8px 9px;border-color:var(--line);background:#151d18}.view-toggle{display:flex;border:1px solid var(--line);padding:3px;border-radius:7px;gap:2px}.view-toggle button{border-radius:4px;width:30px;background:none;color:#6b8172;display:flex;align-items:center;justify-content:center}.view-toggle button.active{background:#314233;color:#c7ddbb}.view-toggle .icon{width:14px;height:14px}.member-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.member-card{position:relative;border:1px solid var(--line);background:#19211c;border-radius:10px;overflow:hidden;transition:border-color .2s,transform .2s;min-width:0}.member-card:hover{border-color:#617c52;transform:translateY(-2px)}.member-card.leader{border-color:#506042}.card-ribbon{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#c7d6a0,#597349 55%,transparent)}.card-top{padding:19px 19px 16px;display:flex;align-items:center;gap:11px}.avatar{position:relative;display:flex;align-items:center;justify-content:center;width:46px;height:49px;flex-shrink:0;border-radius:10px;background:linear-gradient(140deg,#40593a,#283c2e);border:1px solid #56744b;color:#d2e3b4;font-family:serif;font-size:23px}.avatar .mini-star{position:absolute;right:-5px;bottom:-4px;width:18px;height:18px;background:#c9d5a1;border:3px solid #19211c;color:#30492a;display:flex;align-items:center;justify-content:center;border-radius:50%;font:12px sans-serif}.card-name{min-width:0;flex:1}.card-name h3{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;letter-spacing:-.4px}.card-id{font-size:8px;letter-spacing:1.4px;color:#78917c;margin-top:4px}.role-badge{font-size:9px;color:#d3dcb2;padding:2px 6px;border:1px solid #5b6544;border-radius:4px;background:#333d29;white-space:nowrap}.role-badge.member{background:#22332b;color:#acbfaf;border-color:#3e5546}.member-meta{padding:0 19px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;color:#a6b4a6;font-size:10px}.member-meta i{font-style:normal;color:#4c6152}.school{display:flex;align-items:flex-start;gap:7px;margin:12px 19px 0;padding-top:12px;border-top:1px solid #2d3a2f;color:#aabaac;font-size:11px;min-height:35px}.school .icon{width:13px;height:13px;margin-top:3px;color:#738d7b}.abilities{display:flex;flex-wrap:wrap;gap:5px;padding:11px 19px 18px;min-height:53px}.ability{display:inline-flex;align-items:center;gap:4px;font-size:9px;background:#243429;color:#b6cea8;border:1px solid #3b513b;padding:3px 7px;border-radius:4px;word-break:break-word}.ability:nth-child(2n){color:#c6bb97;border-color:#514c35;background:#302f24}.ability:nth-child(3n){color:#adc8c5;border-color:#38514b;background:#233631}.ability .icon{width:10px;height:10px}.card-footer{border-top:1px solid var(--line);padding:10px 17px;display:flex;align-items:center;justify-content:space-between;background:#151e18}.card-footer span{font-size:8px;color:#6f8775;letter-spacing:.8px}.card-footer button{font-size:10px;background:none;color:#acc29f;display:flex;gap:7px;align-items:center;padding:2px}.card-footer .icon{width:12px;height:12px}.add-card{min-height:257px;border:1px dashed #3d4b3e;border-radius:10px;background:#151d18;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#a2b6a2;padding:18px;transition:.2s}.add-card:hover{border-color:#94b184;background:#1b271e}.add-card .plus-circle{width:41px;height:41px;border:1px solid #3c4f3e;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#a7bf9d;background:#1d2a20;margin-bottom:14px}.add-card strong{font-size:12px;font-weight:500}.add-card p{font-size:10px;color:#708773;line-height:1.9;margin-top:6px}.add-card .link{margin-top:17px;font-size:10px;color:#a9c69e;display:flex;align-items:center;gap:5px}.add-card .link .icon{width:12px;height:12px}.empty{grid-column:1/-1;padding:38px 15px;text-align:center;border:1px dashed #3e5140;border-radius:8px;color:#9cb198}.empty p{font-size:11px;margin:8px 0 15px}.member-grid.list{grid-template-columns:1fr}.member-grid.list .member-card{display:grid;grid-template-columns:minmax(140px,1fr) minmax(100px,1fr);align-items:center}.member-grid.list .card-top{grid-row:1/3;padding-bottom:13px}.member-grid.list .member-meta{padding-top:15px}.member-grid.list .school{border:0;margin:0 19px;padding:0;min-height:0}.member-grid.list .abilities{grid-column:1/-1;min-height:0;padding-top:4px;padding-bottom:13px}.member-grid.list .card-footer{grid-column:1/-1}.member-grid.list .add-card{min-height:100px;display:grid;grid-template-columns:42px 1fr auto;text-align:left;column-gap:15px}.member-grid.list .add-card .plus-circle{grid-row:1/3;margin:0}.member-grid.list .add-card p{margin:0}.member-grid.list .add-card .link{grid-column:3;grid-row:1/3;margin:0}.leader-panel{margin-top:2px;border:1px solid #3b4635;background:#1c251d;border-radius:10px;padding:20px}.panel-heading{display:flex;align-items:center;justify-content:space-between}.panel-heading h2{font-size:13px;display:flex;align-items:center;gap:7px;font-weight:500}.panel-heading h2 .icon{width:15px;height:15px;color:#d4c494}.panel-heading .tiny{font-size:8px;color:#819676;letter-spacing:1.4px}.leader-profile{display:flex;gap:12px;align-items:center;margin-top:24px;margin-bottom:18px}.leader-profile .avatar{width:46px;height:49px;font-size:23px}.leader-profile strong{font-size:18px;font-weight:500;word-break:break-word}.leader-profile small{display:block;font-size:9px;margin-top:2px;color:#96a887}.leader-facts{margin:0;display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:10px;border-top:1px solid #334030;padding-top:16px}.leader-facts dt{color:#849a7e}.leader-facts dd{margin:0;text-align:right;color:#c1cdb5;word-break:break-word}.leader-panel .btn{width:100%;margin-top:19px;border-color:#44533c;color:#b9caaa;background:#253022;font-size:10px;padding:8px}.note-panel{margin-top:15px;border:1px solid var(--line);background:#161e19;border-radius:9px;padding:17px 18px}.note-title{display:flex;align-items:center;gap:7px;font-size:11px;color:#b9c7b2}.note-title .icon{width:14px;height:14px;color:#acb58d}.note-panel p{margin-top:9px;font-size:10px;color:#83967f;line-height:1.95}.note-panel button{margin-top:11px;background:none;padding:0;color:#aac29c;font-size:10px;display:flex;align-items:center;gap:6px}.note-panel button .icon{width:12px;height:12px}.archive-foot{display:flex;align-items:center;gap:7px;font-size:10px;color:#6a816e;margin-top:19px}.archive-foot .icon{width:12px;height:12px}.footer{margin-top:38px;border-top:1px solid var(--line);padding-top:17px;display:flex;justify-content:space-between;align-items:center;color:#667f6e;font-size:9px;letter-spacing:.3px}.footer-brand{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:1.4px}.footer-brand .icon{width:12px;height:12px}.mobile-menu{display:none}.scrim{display:none}.toast-region{position:fixed;bottom:24px;left:calc(50% + var(--side)/2);transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px);pointer-events:none}.toast{padding:12px 20px;border:1px solid #637e54;background:#283b2b;box-shadow:0 10px 40px #0005;color:#e0ebd5;font-size:12px;border-radius:8px;animation:toastin .25s ease;pointer-events:auto}.toast.error{border-color:#86624f;background:#473029;color:#f3d6bd}@keyframes toastin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}dialog{padding:0;background:#19221c;color:var(--text);border:1px solid #475c47;border-radius:14px;width:min(580px,calc(100% - 30px));max-height:90dvh;box-shadow:0 25px 100px #0008;color-scheme:dark}dialog::backdrop{background:#060c09c9;backdrop-filter:blur(5px)}.dialog-head{padding:23px 27px 19px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #2e3e30;gap:12px}.dialog-head h2{font-size:20px;font-weight:600;letter-spacing:-.5px}.dialog-head p{font-size:11px;color:var(--muted);margin-top:5px}.dialog-head .eyebrow{font-size:8px;margin-bottom:6px}.dialog-body{padding:23px 27px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:11px;color:#bcccb6}.field label b{color:#b4dca0;font-weight:400}.field small{font-size:10px;color:#7f9880;line-height:1.7}.field input,.field select,.field textarea{font-size:12px}.three-fields{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;grid-column:1/-1}.check-row{display:flex;align-items:center;gap:9px;font-size:11px;color:#bfceb7;cursor:pointer;margin-top:18px;padding:13px;background:#223123;border:1px solid #3b5137;border-radius:7px}.private-details{margin-top:18px;border:1px solid #3c4634;border-radius:7px;padding:12px 14px;background:#22291e}.private-details summary{cursor:pointer;font-size:11px;color:#b8bf9b}.private-details p{font-size:10px;color:#969e80;margin:10px 0;line-height:1.8}.private-details input{font-size:11px}.dialog-foot{padding:17px 27px;border-top:1px solid #2e3e30;display:flex;justify-content:flex-end;gap:8px;background:#151e18}.dialog-foot .delete-member{margin-right:auto;color:#da9d8e;font-size:11px;background:none;display:flex;align-items:center;gap:6px}.delete-member .icon{width:14px;height:14px}.help-list{display:grid;gap:20px}.help-item{display:flex;gap:13px}.help-number{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;background:#2c402a;color:#c5d9ac;border:1px solid #465a3c;border-radius:6px}.help-item h3{font-size:13px;font-weight:500}.help-item p{font-size:11px;color:#91a68d;margin-top:5px;line-height:1.9}.callout{font-size:11px;color:#b9c5a1;border:1px solid #4b5639;border-radius:7px;padding:13px 15px;background:#2a3021;line-height:1.9;margin-top:20px}.backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.backup-action{border:1px solid #3e523c;border-radius:9px;background:#22301f;padding:20px 16px;text-align:left;transition:.2s}.backup-action:hover{border-color:#94b184;background:#2c402a}.backup-action>.icon{color:#b9d4a7;width:23px;height:23px;margin-bottom:15px}.backup-action strong{display:block;font-size:13px;font-weight:500}.backup-action p{color:#93a68b;font-size:10px;line-height:1.8;margin-top:6px}.check-inline{display:flex;align-items:flex-start;gap:8px;margin-top:17px;color:#a1b399;font-size:11px;cursor:pointer}.check-inline input{margin-top:3px;flex-shrink:0}.leader-option{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid #354a37;padding:13px;background:#1c291e;border-radius:8px;margin-bottom:9px}.leader-option:hover{border-color:#b8dfb3}.leader-option.selected{border-color:#9db78a;background:#2a3927}.leader-option .avatar{height:37px;width:37px;font-size:18px}.leader-option strong{font-size:13px}.leader-option small{display:block;color:#8da387;font-size:10px}.leader-option .role-badge{margin-left:auto}.confirm-message{font-size:13px;line-height:1.9;white-space:pre-line;word-break:break-word}.page-heading .icon-btn .icon{width:14px;height:14px}@media(min-width:1450px){.hero-art{right:65px;width:380px}.hero-copy{padding-left:42px}.hero{min-height:275px}.member-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero h2{font-size:33px}.workspace{grid-template-columns:minmax(0,1fr) 290px}}@media(max-width:1170px){:root{--side:205px}.sidebar{padding-left:15px;padding-right:15px}.content{padding:28px}.topbar{padding:0 28px}.workspace{grid-template-columns:minmax(0,1fr) 235px;gap:18px}.hero-copy{padding:28px;width:70%}.hero h2{font-size:27px}.hero-art{right:-40px;opacity:.7}.stat{padding:16px 14px;gap:10px}.stat-sub{display:none}.card-top{padding:17px 13px 14px;gap:9px}.card-name h3{font-size:16px}.card-top .avatar{width:37px;height:42px;font-size:21px}.member-meta,.abilities{padding-left:13px;padding-right:13px}.school{margin-left:13px;margin-right:13px}.role-badge{font-size:8px;padding:2px 5px}.leader-panel{padding:17px}.save-state{font-size:10px}}@media(max-width:1000px){.workspace{grid-template-columns:minmax(0,1fr)}.right-column{display:grid;grid-template-columns:1fr 1fr;gap:15px}.note-panel{margin-top:2px;height:fit-content}.leader-profile{margin:16px 0}.hero-art{right:-55px;width:310px}.hero-copy{width:76%}.stats{gap:10px;margin-bottom:25px}.stat-icon{width:32px;height:34px}.stat-value{font-size:21px}.stat-value.status{font-size:12px}.hero h2{font-size:26px}}@media(max-width:760px){:root{--side:0px}.sidebar{width:236px;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.scrim.show{display:block;position:fixed;inset:0;background:#0009;z-index:19}.mobile-menu{display:inline-flex}.topbar{height:66px;padding:0 20px}.breadcrumb{gap:9px}.top-actions{gap:10px}.topbar .btn{font-size:10px;padding:8px 10px}.save-state{font-size:0;gap:0}.save-state .icon{width:17px;height:17px}.content{padding:26px 20px 20px}.page-heading h1{font-size:24px}.page-heading p{font-size:11px}.page-heading{margin-bottom:21px}.date{font-size:9px}.date span{display:none}.hero{min-height:248px}.hero-copy{padding:25px;width:77%}.hero h2{font-size:26px}.hero-art{right:-83px;opacity:.42}.hero-copy>p{font-size:10px;max-width:220px}.hero-bottom>span{display:none}.hero-index{font-size:7px}.stats{margin-top:14px;gap:8px}.stat{padding:14px 11px;gap:8px}.stat-icon{width:28px;height:30px}.stat-icon .icon{width:15px;height:15px}.stat-label{font-size:9px}.stat-value{font-size:20px}.stat-value small{font-size:9px}.stat-value.status{font-size:10px}.footer{font-size:8px}.footer-brand{font-size:8px;letter-spacing:.7px}.toast-region{left:50%}.dialog-head{padding:20px}.dialog-body{padding:20px}.dialog-foot{padding:16px 20px}}@media(max-width:460px){.date{display:none}.hero h2{font-size:25px}.hero-copy{width:90%;padding:23px}.hero-art{right:-118px;opacity:.3}.stat{padding:13px 10px;display:block}.stat-icon{display:none}.stat-value{margin-top:7px}.stat-value.status{font-size:11px;margin-top:11px}.stat-label{font-size:9px}.member-grid{gap:10px}.card-top{gap:8px;position:relative;flex-wrap:wrap}.card-top .avatar{width:34px;height:38px;font-size:19px}.card-name h3{font-size:15px}.card-id{font-size:7px;letter-spacing:.7px}.card-top .role-badge{position:absolute;top:8px;right:8px;padding:1px 4px;font-size:7px}.card-top{padding-top:26px}.member-meta{font-size:9px;gap:4px}.school{font-size:10px}.ability{padding:3px 5px;font-size:8px}.abilities{gap:4px}.card-footer{padding:9px 12px}.card-footer span{font-size:7px}.card-footer button{font-size:9px}.add-card{padding:12px;min-height:265px}.add-card p{font-size:9px}.right-column{grid-template-columns:1fr}.leader-panel{padding:19px}.leader-profile{margin:17px 0}.note-panel{padding:16px 19px}.section-title h2{font-size:16px}.toolbar select{width:91px;font-size:9px}.toolbar{gap:6px}.view-toggle button{width:25px}.section-head .btn{padding:8px 10px;font-size:10px}.archive-foot{font-size:9px}.footer{gap:12px;align-items:flex-start}.footer>span{text-align:right;max-width:132px}.three-fields{grid-template-columns:1fr 1fr}.three-fields .field:first-child{grid-column:1/-1}.form-grid{gap:13px}.dialog-foot .btn{padding:9px 12px;font-size:11px}.member-grid.list .card-top{padding-top:18px}.member-grid.list .card-top .role-badge{display:none}}
-@media(max-width:460px){.breadcrumb{gap:8px;white-space:nowrap}.breadcrumb>span:not(:last-child),.breadcrumb>.icon{display:none}.top-actions{flex-shrink:0}.hero-copy>p{word-break:keep-all}.stat-label{white-space:nowrap}.stat-value.status{white-space:nowrap;font-size:10px}.note-panel p{word-break:keep-all}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
-[hidden]{display:none!important}.sync-button{border:0;background:none;padding:5px 0;cursor:pointer}.top-actions{gap:12px}.footer-brand{gap:6px}.login-screen{overflow:hidden;min-height:100dvh;max-width:1320px;margin:auto;padding:36px 62px 25px;display:flex;flex-direction:column;background:radial-gradient(ellipse at 21% 43%,#26372a55,transparent 52%)}.login-brand{display:flex;align-items:center;gap:12px;color:#c5d9b8;font-size:10px;letter-spacing:2.2px}.login-brand>.icon{width:25px;height:31px}.login-edition{margin-left:auto;font-size:8px;color:#7b9580;letter-spacing:1.7px;border:1px solid #344638;padding:4px 8px;border-radius:4px}.login-layout{display:grid;grid-template-columns:1fr 470px;gap:76px;align-items:center;flex:1;padding:46px 0 58px}.login-story{position:relative;align-self:stretch;display:flex;flex-direction:column;justify-content:center;min-height:660px}.login-story>.eyebrow{font-size:9px;margin-bottom:23px;letter-spacing:2.5px}.login-story h1{font-size:39px;line-height:1.5;font-weight:500;letter-spacing:-1.8px;word-break:keep-all}.login-story h1 em{font-style:normal;color:#c0dca6}.login-story>p{color:#92a78d;font-size:12px;line-height:2.1;margin-top:20px;word-break:keep-all}.login-sigil{position:relative;height:250px;width:260px;margin:28px 0 0 36px;display:flex;align-items:center;justify-content:center}.login-sigil>svg{height:183px;transform:rotate(13deg);filter:drop-shadow(10px 12px 0 #050e0a30)}.sigil-ring{position:absolute;border:1px solid #768d6240;border-radius:50%;inset:18px}.sigil-ring:before,.sigil-ring:after{content:'';position:absolute;background:#768d6260}.sigil-ring:before{height:1px;width:250px;top:50%;left:-15px}.sigil-ring:after{height:240px;width:1px;left:50%;top:-15px}.ring-outer{inset:0;border-style:dashed;border-color:#71896930}.sigil-star{position:absolute;color:#b5c99c;font-size:22px}.star-one{right:5px;bottom:50px}.star-two{left:20px;top:38px;font-size:17px}.login-promises{display:flex;gap:22px;margin-top:30px;color:#8da386;font-size:10px}.login-promises>span{display:flex;gap:6px;align-items:center}.login-promises .icon{width:13px;height:13px}.login-card{border:1px solid #3a4b3a;border-radius:14px;padding:30px;background:linear-gradient(138deg,#202b22,#17221b);box-shadow:0 24px 75px #0003}.login-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.login-card-top .eyebrow{font-size:8px;letter-spacing:2px}.login-card h2{font-size:24px;letter-spacing:-.8px;font-weight:500}.login-sub{font-size:11px;color:#8fa38a;margin-top:5px;margin-bottom:24px}.repo-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.login-card .field input{font-size:12px}.login-card .field label{font-size:11px}.repo-summary{display:flex;gap:12px;align-items:center;border:1px solid #3b4d39;border-radius:8px;padding:13px;background:#243120}.repo-summary>.icon{color:#a9c194}.repo-summary small{display:block;color:#8fa080;font-size:9px;margin-bottom:3px}.repo-summary strong{display:block;font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:400;word-break:break-all;color:#c8d8b6}.connection-details{margin-top:12px;color:#889f83;font-size:10px}.connection-details summary{cursor:pointer;width:fit-content}.connection-details .form-grid{margin-top:10px;gap:10px}.connection-details input{padding:8px}.token-field{margin-top:21px}.token-input{position:relative}.token-input input{padding-right:41px}.token-input .icon-btn{position:absolute;right:5px;top:7px;width:27px;height:27px}.token-input .icon{width:15px;height:15px}.token-field small{font-size:10px;line-height:1.8}.login-submit{width:100%;margin-top:21px;padding:12px;gap:10px;font-size:12px}.login-submit .icon:last-child{margin-left:auto}.login-submit .icon:first-child{margin-right:auto}.token-guide{margin-top:20px;border-top:1px solid #344432;padding-top:17px;font-size:11px;color:#b2c6a7}.token-guide summary{cursor:pointer}.token-guide ol{padding-left:19px;margin:12px 0;display:grid;gap:8px;color:#93a58a;font-size:10px;line-height:1.9}.token-guide strong{font-weight:500;color:#c4d0b3}.token-guide a{font-size:10px;color:#bdcfaa;text-decoration:underline;text-underline-offset:3px}.token-guide>p{font-size:9px;color:#87967c;margin-top:13px;line-height:1.8}.login-security{display:flex;gap:8px;align-items:flex-start;font-size:9px;color:#778d75;line-height:1.9;margin-top:19px;word-break:keep-all}.login-security .icon{width:14px;height:14px;margin-top:3px;color:#99ad89}.login-error{border:1px solid #795442;padding:11px 13px;color:#edc4ab;background:#402e23;border-radius:7px;font-size:11px;line-height:1.9;margin-top:16px;white-space:pre-line;word-break:keep-all}.login-footer{display:flex;justify-content:space-between;gap:16px;border-top:1px solid #2c3b2d;padding-top:18px;font-size:9px;color:#6f886e}.login-footer>span:first-child{font-size:8px;letter-spacing:1.8px}.issue-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.dialog-foot{position:sticky;bottom:0;z-index:1}.busy-overlay{cursor:wait!important}.save-state.dirty{color:#ddbd8e}.connection-badge{font-size:8px;color:#73916e;letter-spacing:.5px}.privacy-note p{word-break:keep-all}.member-card .card-footer>span{max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:1170px){.login-screen{padding:28px 40px 23px}.login-layout{gap:40px;grid-template-columns:1fr 440px}.login-story h1{font-size:33px}.login-card{padding:26px}.login-promises{gap:15px;font-size:9px}}@media(max-width:900px){.login-screen{padding:25px 28px}.login-layout{gap:30px;grid-template-columns:1fr 390px}.login-story h1{font-size:29px}.login-story>p{font-size:11px}.login-card{padding:24px}.login-card h2{font-size:22px}.login-sigil{margin-left:0;width:210px;height:210px}.sigil-ring:before{width:210px}.sigil-ring:after{height:210px}.login-promises{flex-direction:column;gap:10px}.login-story>.eyebrow{font-size:8px}}@media(max-width:760px){.top-actions{gap:6px}.topbar .btn{padding:8px 9px}.login-layout{grid-template-columns:1fr;gap:26px;padding:40px 0 32px}.login-screen{max-width:520px;padding:24px 22px}.login-story{min-height:0;display:block}.login-story>.eyebrow{margin-bottom:13px}.login-story h1{font-size:30px}.login-story>p{font-size:10px;margin-top:12px}.login-sigil{position:absolute;right:-3px;bottom:10px;width:125px;height:135px;opacity:.35}.login-sigil>svg{height:95px}.sigil-ring:before{width:115px}.sigil-ring:after{height:115px}.login-promises{display:none}.login-story{padding-right:30px}.login-card{padding:25px 22px}.login-edition{font-size:7px;letter-spacing:1px}.login-brand{font-size:8px;letter-spacing:1.7px;gap:8px}.login-brand>.icon{width:22px;height:26px}.login-footer{font-size:8px;align-items:flex-start}.login-footer>span:last-child{max-width:130px;text-align:right}.login-footer>span:first-child{font-size:7px;letter-spacing:1px}.topbar .breadcrumb{font-size:10px}.topbar{gap:6px}.login-security{font-size:9px}.repo-fields{gap:9px}.repo-fields input{font-size:10px!important}.login-submit{padding:13px 12px}.token-guide{font-size:10px}}@media(max-width:370px){.login-screen{padding:22px 16px}.login-card{padding:23px 17px}.login-sigil{right:-17px;width:110px;opacity:.2}.login-story h1{font-size:27px}.login-card h2{font-size:20px}.login-brand{font-size:7px}.top-actions .btn .icon{display:none}.topbar{padding:0 14px}}
-
-
-/* Galaxy S22: 360 × 780 CSS pixels, including narrow mobile layouts. */
-.login-card,.login-story,.field,.repo-fields,.token-input,.card-name{min-width:0}
-.login-sub,.login-security,.token-guide,.dialog-head p,.field small,.private-details p,.callout,.note-panel p{word-break:keep-all;overflow-wrap:anywhere}
-@media(max-width:600px){
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-  body{font-size:14px}
-  .content{padding:24px 16px 22px}
-  .topbar{height:auto;min-height:64px;padding:10px 14px;gap:8px}
-  .topbar .breadcrumb{min-width:0;gap:7px;font-size:12px;white-space:nowrap}
-  .topbar .breadcrumb>span:not(:last-child),.topbar .breadcrumb>.icon{display:none}
-  .top-actions{flex-shrink:0;gap:4px}
-  .top-actions .btn{min-height:40px;padding:8px 10px;font-size:12px}
-  .top-actions .btn .icon{display:none}
-  .top-actions .icon-btn,.mobile-menu{width:36px;height:40px}
-  .save-state{width:22px;min-height:40px;justify-content:center;gap:0}
-  .save-state #saveLabel{display:none}
-  .page-heading h1{font-size:24px;line-height:1.4}
-  .page-heading p{font-size:12px;line-height:1.9;word-break:keep-all}
-  .page-heading .heading-title{gap:8px}
-  .hero{min-height:0}
-  .hero-copy{padding:24px 21px;width:100%}
-  .hero h2{font-size:26px;line-height:1.6;letter-spacing:-1px;word-break:keep-all}
-  .hero-copy>p{font-size:12px;line-height:1.95;max-width:258px;word-break:keep-all}
-  .hero-kicker{font-size:10px;letter-spacing:.3px;word-break:keep-all;max-width:250px}
-  .hero-art{right:-110px;opacity:.2}
-  .hero-bottom .team-pill{font-size:12px;max-width:100%;padding:4px 8px}
-  .team-pill .icon-btn{width:32px;height:30px}
-  .hero-index{display:none}
-  .stats{gap:7px;margin-bottom:26px}
-  .stat{display:block;padding:13px 9px;min-width:0}
-  .stat-icon,.stat-sub{display:none}
-  .stat-label{font-size:10px;letter-spacing:-.35px;white-space:nowrap}
-  .stat-value{font-size:25px;margin-top:8px}
-  .stat-value small{font-size:11px;margin-left:4px}
-  .stat-value.status{font-size:11px;margin-top:13px;white-space:nowrap;letter-spacing:-.5px}
-  .workspace{gap:22px}
-  .section-head{gap:8px;align-items:center}
-  .section-title h2{font-size:18px}
-  .section-head p{font-size:11px;word-break:keep-all}
-  .section-head .btn{min-height:44px;padding:10px 12px;font-size:12px}
-  .toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;margin-bottom:16px}
-  .toolbar .search{grid-column:1/-1}
-  .search input{font-size:16px;height:46px;padding-left:38px}
-  .search .icon{top:15px;left:13px;width:16px;height:16px}
-  .toolbar select{width:100%;min-height:42px;font-size:13px;padding:8px 12px}
-  .view-toggle{padding:3px;gap:4px}
-  .view-toggle button{width:38px;min-height:34px}
-  .view-toggle .icon{width:17px;height:17px}
-  .member-grid{grid-template-columns:minmax(0,1fr);gap:14px}
-  .member-card .card-top{padding:21px 20px 17px;gap:13px;flex-wrap:nowrap}
-  .member-card .avatar{width:47px;height:51px;font-size:26px}
-  .member-card .card-name h3{font-size:21px;line-height:1.4}
-  .card-id{font-size:9px;letter-spacing:1.3px;margin-top:6px}
-  .member-card .role-badge{position:static;font-size:11px;padding:3px 8px}
-  .member-meta{font-size:12px;padding:0 20px;gap:7px}
-  .school{margin:15px 20px 0;padding-top:15px;font-size:14px;line-height:1.8;min-height:0}
-  .school .icon{width:16px;height:16px;margin-top:4px}
-  .school .small{font-size:12px!important}
-  .abilities{padding:15px 20px 20px;gap:7px;min-height:0}
-  .ability{font-size:12px;padding:5px 9px;gap:5px;line-height:1.6}
-  .ability .icon{width:13px;height:13px}
-  .card-footer{padding:5px 18px}
-  .card-footer span{font-size:10px}
-  .card-footer button{min-height:42px;padding:8px 2px;font-size:13px;gap:9px}
-  .card-footer .icon{width:16px;height:16px}
-  .add-card{min-height:170px;padding:20px}
-  .add-card .plus-circle{width:36px;height:36px;margin-bottom:10px}
-  .add-card strong{font-size:14px}
-  .add-card p{font-size:12px;line-height:1.8;margin-top:5px}
-  .add-card p br{display:none}
-  .add-card .link{font-size:12px;margin-top:12px}
-  .member-grid.list .member-card{display:block}
-  .member-grid.list .card-top{padding:17px 20px 12px}
-  .member-grid.list .member-meta{padding:0 20px}
-  .member-grid.list .school{margin:10px 20px 0;padding-top:10px;border-top:1px solid var(--line)}
-  .member-grid.list .abilities{padding:12px 20px}
-  .member-grid.list .card-top .role-badge{display:inline-block}
-  .member-grid.list .add-card{display:flex;text-align:center;min-height:150px;gap:0}
-  .member-grid.list .add-card .plus-circle{margin:0 0 8px}
-  .member-grid.list .add-card .link{margin-top:8px}
-  .right-column{grid-template-columns:1fr;gap:14px}
-  .leader-panel{padding:21px}
-  .panel-heading h2{font-size:14px}
-  .leader-profile{margin:22px 0}
-  .leader-profile strong{font-size:21px}
-  .leader-profile small{font-size:12px;word-break:keep-all}
-  .leader-facts{font-size:12px;grid-template-columns:72px minmax(0,1fr);gap:12px}
-  .leader-panel .btn{font-size:13px;min-height:44px}
-  .note-panel{padding:20px}
-  .note-title{font-size:14px}
-  .note-panel p{font-size:12px;line-height:2}
-  .note-panel button{font-size:12px;min-height:36px}
-  .archive-foot{font-size:11px;align-items:flex-start;line-height:1.9;word-break:keep-all}
-  .archive-foot .icon{margin-top:4px;flex-shrink:0}
-  .footer{display:block;margin-top:26px;font-size:10px;line-height:1.8}
-  .footer-brand{font-size:10px;letter-spacing:1px;margin-bottom:8px}
-  .footer>span{max-width:none;text-align:left}
-  dialog{width:calc(100% - 20px);max-height:calc(100dvh - 20px);border-radius:12px}
-  .dialog-head{padding:19px 18px 17px}
-  .dialog-head h2{font-size:22px;line-height:1.5}
-  .dialog-head p{font-size:12px;line-height:1.8}
-  .dialog-head .icon-btn{min-width:36px;height:36px}
-  .dialog-body{padding:20px 18px 26px}
-  .form-grid{gap:17px 12px}
-  .field label{font-size:13px;line-height:1.7}
-  .field input,.field select,.field textarea,.private-details input{font-size:16px;min-height:46px;padding:11px 12px}
-  .field textarea{min-height:100px}
-  .field small{font-size:12px;line-height:1.85}
-  .three-fields{grid-template-columns:1fr 1fr;gap:13px}
-  .three-fields .field:first-child{grid-column:1/-1}
-  .check-row{font-size:13px;min-height:48px;line-height:1.8}
-  .check-row input,.check-inline input{width:19px;height:19px;flex-shrink:0}
-  .private-details{padding:14px}
-  .private-details summary{font-size:13px;line-height:1.8}
-  .private-details p{font-size:12px;line-height:1.9}
-  .dialog-foot{padding:12px 14px calc(12px + env(safe-area-inset-bottom));gap:7px;flex-wrap:wrap;box-shadow:0 -6px 18px #10161455}
-  .dialog-foot .btn{font-size:13px;min-height:44px;padding:10px 12px}
-  .dialog-foot .delete-member{font-size:12px;min-height:44px;padding:0 2px}
-  .confirm-message{font-size:14px;line-height:1.9;word-break:keep-all}
-  .backup-actions{grid-template-columns:1fr;gap:12px}
-  .backup-action{padding:19px}
-  .backup-action strong{font-size:15px}
-  .backup-action p{font-size:12px;line-height:1.9}
-  .backup-action>.icon{margin-bottom:10px}
-  .check-inline{font-size:12px;line-height:1.9}
-  .callout{font-size:12px;line-height:1.95;padding:14px}
-  .help-item h3{font-size:15px}
-  .help-item p{font-size:12px;line-height:1.95}
-  .help-number{width:29px;height:29px;font-size:11px}
-  .leader-option{padding:14px;min-height:72px}
-  .leader-option strong{font-size:16px}
-  .leader-option small{font-size:12px;line-height:1.8}
-  .leader-option .role-badge{font-size:10px}
-  .toast-region{bottom:calc(16px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:400px}
-  .toast{font-size:13px;line-height:1.8;padding:13px 16px;word-break:keep-all;overflow-wrap:anywhere}
-  .issue-actions{display:grid;grid-template-columns:1fr;gap:10px}
-  .issue-actions .btn{font-size:13px;min-height:44px;white-space:normal}
-  .login-screen{padding:20px 16px;max-width:480px}
-  .login-brand{font-size:9px;letter-spacing:1.1px;gap:7px}
-  .login-edition{font-size:7px;letter-spacing:.8px;padding:4px 6px}
-  .login-layout{padding:32px 0 30px;gap:25px;min-width:0}
-  .login-story{padding-right:0;min-width:0}
-  .login-story>.eyebrow{font-size:9px;letter-spacing:1.8px;line-height:1.8;margin-bottom:14px}
-  .login-story h1{font-size:29px;line-height:1.65;letter-spacing:-1.25px}
-  .login-story>p{font-size:12px;line-height:1.95;margin-top:14px;max-width:285px;word-break:keep-all}
-  .login-sigil{right:-18px;top:36px;bottom:auto;width:112px;height:130px;opacity:.13;pointer-events:none}
-  .login-card{padding:24px 20px;border-radius:12px;min-width:0}
-  .login-card-top{margin-bottom:16px}
-  .login-card h2{font-size:23px;line-height:1.55;word-break:keep-all;letter-spacing:-.8px}
-  .login-sub{font-size:12px;line-height:1.9;margin-top:7px;margin-bottom:22px}
-  .repo-fields{grid-template-columns:1fr;gap:15px}
-  .login-card .field label{font-size:13px}
-  .login-card .field input,.repo-fields input{font-size:16px!important;min-height:48px;padding:11px 12px}
-  .connection-details{margin-top:17px;font-size:12px}
-  .connection-details summary{min-height:30px;line-height:2}
-  .connection-details .form-grid{grid-template-columns:1fr;gap:14px}
-  .token-field{margin-top:20px}
-  .token-field input{padding-right:48px!important}
-  .token-input .icon-btn{right:3px;top:4px;width:40px;height:40px}
-  .token-input .icon{width:18px;height:18px}
-  .token-field small{font-size:12px;line-height:1.95;margin-top:3px;word-break:keep-all}
-  .token-field small br{display:none}
-  .login-submit{font-size:14px;min-height:50px;margin-top:22px}
-  .login-error{font-size:12px;line-height:1.9;padding:13px}
-  .token-guide{font-size:13px;padding-top:18px;margin-top:22px}
-  .token-guide summary{line-height:1.9;min-height:30px;word-break:keep-all}
-  .token-guide ol{font-size:12px;line-height:1.95;gap:12px;padding-left:20px}
-  .token-guide a{display:inline-block;font-size:12px;min-height:36px;line-height:2.3}
-  .token-guide>p{font-size:12px;line-height:1.9}
-  .login-security{font-size:11px;line-height:1.9;margin-top:18px;gap:7px;word-break:keep-all}
-  .login-security br{display:none}
-  .login-security .icon{width:15px;height:15px;margin-top:4px}
-  .repo-summary{padding:14px 12px;gap:9px}
-  .repo-summary small{font-size:11px;line-height:1.9}
-  .repo-summary strong{font-size:13px;line-height:1.8;overflow-wrap:anywhere}
-  .login-footer{display:block;line-height:1.8;padding-top:17px;font-size:10px}
-  .login-footer>span{display:block}
-  .login-footer>span:first-child{font-size:8px;letter-spacing:1.3px;margin-bottom:6px}
-  .login-footer>span:last-child{font-size:10px;max-width:none;text-align:left}
-}
-@media(max-width:359px){
- .login-story h1{font-size:26px}.login-card{padding:22px 17px}.login-card h2{font-size:21px}
- .topbar{padding:8px 10px}.topbar .breadcrumb{font-size:11px}.top-actions .btn{font-size:11px;padding:8px}
- .stat-label{font-size:9px}.stat-value.status{font-size:10px}.hero h2{font-size:24px}
- .form-grid{grid-template-columns:1fr}.field.full{grid-column:1}.three-fields{grid-column:1}
-}
-@media(max-height:500px) and (orientation:landscape){
- dialog{max-height:calc(100dvh - 12px);margin:6px auto}.dialog-head{padding:14px 20px}.dialog-foot{padding:10px 20px}
- .login-story{min-height:0}.sidebar{overflow-y:auto}.side-bottom{padding-top:20px}
-}
-
-</style>
-</head>
-<body>
-<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
-<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
-<symbol id="i-crown" viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5L3 7Z"/><path d="M6 22h12"/></symbol>
-<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l3 3h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
-<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-10-1v16c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1Zm0 0v16"/></symbol>
-<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 5-5 8-9 10-4-2-9-5-9-10V6l9-4Z"/><path d="m8 12 3 3 5-6"/></symbol>
-<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></symbol>
-<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
-<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></symbol>
-<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
-<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
-<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
-<symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l5-1L21 7a2.8 2.8 0 0 0-4-4L5 15l-1 5Z"/></symbol>
-<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M1 21v-3a7 7 0 0 1 14 0v3M16 3a4 4 0 0 1 0 8m2 3a6 6 0 0 1 5 6"/></symbol>
-<symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4m-2-2h4"/></symbol>
-<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
-<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01"/></symbol>
-<symbol id="i-school" viewBox="0 0 24 24"><path d="m2 10 10-7 10 7M4 9v12h16V9M9 21v-7h6v7"/><circle cx="12" cy="9" r="1"/></symbol>
-<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
-<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v3"/></symbol>
-<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
-<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
-<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-<symbol id="i-seal" viewBox="0 0 24 24"><path d="m12 2 8 5v10l-8 5-8-5V7l8-5Z"/><path d="M8 9h8m-4-3v12m-5-3 5-4 5 4"/></symbol>
-</defs></svg>
-<section class="login-screen" id="loginScreen" aria-labelledby="loginTitle">
-<div class="login-brand"><svg class="icon"><use href="#i-seal"/></svg><span>THE SPIRIT ARCHIVE</span><span class="login-edition">CLOUDFLARE EDITION</span></div>
-<div class="login-layout"><div class="login-story"><div class="eyebrow">OUR STORIES, ONE ARCHIVE</div><h1 id="loginTitle">우리만의 기록.<br>이제, <em>함께 이어가요.</em></h1><p>서로 다른 곳에서도 같은 이야기를 펼칠 수 있도록.<br>Cloudflare로 안전하게 연결하는 우리 팀의 기록실.</p><div class="login-sigil" aria-hidden="true"><div class="sigil-ring ring-outer"></div><div class="sigil-ring ring-inner"></div><svg viewBox="0 0 110 160" fill="none"><path d="M17 7h76v136l-9 5-10-4-9 7-11-5-12 5-11-6-14 2V7Z" fill="#bdc99c"/><path d="M24 15h62v123H24z" stroke="#506444"/><path d="m55 30-13 13h26L55 30Zm0 13v79M34 55h42M40 55l15 14 15-14M32 82l23-13 23 13M34 94h42M40 82v30m30-30v30m-30-13 15 12 15-12" stroke="#385137" stroke-width="2.5"/><circle cx="55" cy="128" r="4" stroke="#385137"/></svg><span class="sigil-star star-one">✦</span><span class="sigil-star star-two">✧</span></div><div class="login-promises"><span><svg class="icon"><use href="#i-shield"/></svg>비밀번호로 기록실 열기</span><span><svg class="icon"><use href="#i-users"/></svg>친구들과 공동 기록</span></div></div>
-<div class="login-card"><div class="login-card-top"><span class="eyebrow">ENTER THE ARCHIVE</span><span class="outline-label">PRIVATE</span></div><h2>우리 팀 기록실</h2><p class="login-sub">우리끼리 정한 비밀번호로 들어오세요.</p>
-<form id="loginForm"><div class="field token-field"><label for="sharedPassword">공용 비밀번호 <b>*</b></label><div class="token-input"><input id="sharedPassword" type="password" required placeholder="우리 팀 비밀번호" autocomplete="current-password" spellcheck="false" autocapitalize="none" maxlength="200"><button id="togglePassword" type="button" class="icon-btn" aria-label="비밀번호 보기" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div><small>비밀번호는 믿을 수 있는 팀원에게만 알려 주세요.<br>로그인은 최대 12시간 유지돼요. 공용 기기에서는 꼭 로그아웃해 주세요.</small></div>
-<p class="login-error" id="loginError" role="alert" hidden></p><button type="submit" class="btn btn-primary login-submit" id="connectButton"><svg class="icon"><use href="#i-lock"/></svg><span>기록실 들어가기</span><svg class="icon"><use href="#i-arrow"/></svg></button></form>
-<details class="token-guide"><summary>우리 기록실 이용 안내</summary><p>공용 비밀번호를 아는 팀원은 기록을 보고 수정할 수 있어요. 믿을 수 있는 사람에게만 알려 주세요.</p><p>Cloudflare 서버가 비밀번호를 확인하고 비공개 GitHub 기록을 불러옵니다. GitHub 연결 토큰은 브라우저에 전달되지 않습니다.</p><p>새로고침해도 로그인은 유지됩니다. 공용 기기에서는 우측 상단 자물쇠로 로그아웃하세요. 우클릭·단축키 제한은 소스를 숨기는 보안 기능은 아닙니다.</p></details>
-<div class="login-security"><svg class="icon"><use href="#i-shield"/></svg><span>GitHub 연결 토큰은 Cloudflare 서버에만 보관해요.<br>공용 기기에서는 사용 후 꼭 로그아웃해 주세요.</span></div></div></div><footer class="login-footer"><span>PROTECTION · TRUST · TOGETHER</span><span>비밀번호를 다른 사람에게 공개하지 마세요.</span></footer></section>
-<dialog id="issueDialog" aria-labelledby="issueTitle"><div class="dialog-head"><div><div class="eyebrow">YOUR CHANGES ARE STILL HERE</div><h2 id="issueTitle">저장을 완료하지 못했어요</h2></div><button class="icon-btn" data-close="issueDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><p id="issueMessage" class="confirm-message"></p><div class="callout">내 변경은 아직 이 페이지의 메모리에 있어요. 새로고침하거나 로그아웃하기 전에 파일로 보관해 주세요. 최신 기록을 불러온 뒤 필요한 내용만 다시 적용하면 돼요.</div><div class="issue-actions"><button class="btn btn-outline" id="downloadDraft"><svg class="icon"><use href="#i-download"/></svg>내 변경 파일로 보관</button><button class="btn btn-outline" id="retryDraft">저장 다시 시도</button><button class="btn btn-primary" id="reauthButton" hidden>비밀번호 다시 입력</button></div></div><div class="dialog-foot"><button class="btn btn-outline" data-close="issueDialog">닫기</button><button class="btn btn-primary" id="issueRefresh">최신 기록으로 돌아가기</button></div></dialog>
-
-<dialog id="reauthDialog" aria-labelledby="reauthTitle"><form id="reauthForm"><div class="dialog-head"><div><div class="eyebrow">WELCOME BACK</div><h2 id="reauthTitle">로그인을 이어가요</h2><p>작성 중인 기록은 그대로 두고 로그인만 다시 확인해요.</p></div><button type="button" class="icon-btn" data-close="reauthDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><div class="field"><label for="reauthPassword">공용 비밀번호</label><input id="reauthPassword" type="password" autocomplete="current-password" required maxlength="200" placeholder="우리 팀 비밀번호"></div><p id="reauthError" class="login-error" role="alert" hidden></p></div><div class="dialog-foot"><button type="button" class="btn btn-outline" data-close="reauthDialog">취소</button><button type="submit" class="btn btn-primary">로그인 유지하기</button></div></form></dialog>
-<div class="scrim" id="scrim"></div>
-<aside class="sidebar" id="sidebar" hidden aria-label="주 메뉴">
-<a class="brand" href="#" aria-label="비밀 기록실 홈"><svg class="brand-mark" viewBox="0 0 40 48" fill="none"><path d="m20 2 16 9v26l-16 9L4 37V11L20 2Z" stroke="currentColor"/><path d="m20 7 12 7v20l-12 7-12-7V14l12-7Z" stroke="currentColor" opacity=".4"/><path d="M12 17h16m-8-5v24m-9-8 9-7 9 7M14 32h12" stroke="currentColor" stroke-width="1.3"/><circle cx="20" cy="25" r="3" fill="#131a17" stroke="currentColor"/></svg><div><strong>비밀 기록실</strong><span>THE SPIRIT ARCHIVE</span></div></a>
-<div class="side-team"><div class="small">현재 소속 팀</div><div class="side-team-row"><strong id="sideTeam">연결 대기</strong><span class="dot" title="로컬 기록실"></span></div></div>
-<div class="nav-label">WORKSPACE</div>
-<nav class="nav"><button class="active" id="navMembers"><svg class="icon"><use href="#i-grid"/></svg>팀원 기록실<span class="count" id="navCount">0</span></button><button id="navLeader"><svg class="icon"><use href="#i-crown"/></svg>팀장 관리</button><button id="navBackup"><svg class="icon"><use href="#i-folder"/></svg>저장 · 불러오기</button></nav>
-<div class="nav-label">GUIDE</div><nav class="nav"><button id="navGuide"><svg class="icon"><use href="#i-book"/></svg>기록실 사용 안내</button></nav>
-<div class="side-bottom"><div class="privacy-note"><strong><svg class="icon"><use href="#i-lock"/></svg>우리만의 기록, 안전하게</strong><p>기록은 비공개 GitHub에 보관해요.<br>연결키는 서버에만 보관해요.<br>공용 기기에서는 꼭 로그아웃해요.</p></div><div class="side-footer"><span>PRIVATE ARCHIVE</span><span>CLOUDFLARE EDITION</span></div></div>
-</aside>
-<main class="main" id="appMain" hidden><header class="topbar"><div class="breadcrumb"><button class="icon-btn mobile-menu" id="menuButton" aria-label="메뉴 열기" aria-expanded="false" aria-controls="sidebar"><svg class="icon"><use href="#i-menu"/></svg></button><svg class="icon"><use href="#i-folder"/></svg><span>워크스페이스</span><svg class="icon"><use href="#i-chevron"/></svg><span>팀원 기록실</span></div><div class="top-actions"><button class="save-state sync-button" id="saveState" title="연결 상태" type="button"><svg class="icon"><use href="#i-check"/></svg><span id="saveLabel">GitHub 연결 대기</span></button><button class="btn btn-outline" id="refreshButton"><svg class="icon"><use href="#i-download"/></svg><span>최신 기록</span></button><button class="icon-btn" id="logoutButton" aria-label="로그아웃" title="로그아웃"><svg class="icon"><use href="#i-lock"/></svg></button></div></header>
-<div class="content"><section class="page-heading"><div><div class="heading-title"><h1>팀원 기록실</h1><span class="outline-label">CLASSIFIED</span></div><p>우리의 특별함이 모여, 하나의 팀이 되는 곳.</p></div><div class="date mono" id="today"></div></section>
-<section class="hero" aria-label="팀 소개"><div class="hero-copy"><div class="hero-kicker">서로 다른 곳에서 이어 쓰는 하나의 기록</div><h2>보이지 않는 세계,<br><em>함께 마주하는 우리.</em></h2><p>서로의 능력을 기록하고, 우리만의 이야기를 시작해요.<br>혼자가 아니라 팀이니까, 괜찮아.</p><div class="hero-bottom"><div class="team-pill"><svg class="icon" style="width:12px;height:12px"><use href="#i-seal"/></svg><span id="heroTeam">우리 팀</span><button class="icon-btn" style="width:20px;height:20px" id="renameButton" aria-label="팀명 수정"><svg class="icon" style="width:11px;height:11px"><use href="#i-edit"/></svg></button></div><span class="mono">CONNECTED BY COURAGE</span></div></div>
-<div class="hero-art" aria-hidden="true"><svg viewBox="0 0 360 310" fill="none"><defs><radialGradient id="aura"><stop stop-color="#9ab77b" stop-opacity=".14"/><stop offset="1" stop-color="#9ab77b" stop-opacity="0"/></radialGradient><linearGradient id="paper" x1="155" y1="55" x2="239" y2="251" gradientUnits="userSpaceOnUse"><stop stop-color="#c3caa0"/><stop offset="1" stop-color="#829467"/></linearGradient><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".6" fill="#a6bd8b" opacity=".2"/></pattern></defs><rect x="0" width="360" height="310" fill="url(#dots)"/><circle cx="191" cy="158" r="150" fill="url(#aura)"/><g stroke="#a0b784"><circle cx="191" cy="158" r="111" opacity=".23"/><circle cx="191" cy="158" r="103" opacity=".12"/><circle cx="191" cy="158" r="132" opacity=".13" stroke-dasharray="2 7"/><path d="M191 20v29m0 217v28M53 158h28m220 0h30" opacity=".45"/><path d="m96 63 19 19m153 152 18 18M96 253l19-19M268 82l19-19" opacity=".25"/><path d="m191 36 4 7-4 7-4-7 4-7Zm0 230 4 7-4 7-4-7 4-7ZM63 154l7 4-7 4-7-4 7-4Zm257 0 7 4-7 4-7-4 7-4Z" opacity=".55"/></g><g transform="rotate(14 193 156)"><path d="M146 69h93v171l-6 5-7-3-9 6-10-4-9 4-9-4-8 4-9-4-10 2-7-5-9 2V69Z" fill="#0b190f" opacity=".28" transform="translate(7 9)"/><path d="M146 61h93v178l-6 5-7-3-9 6-10-4-9 4-9-4-8 4-9-4-10 2-7-5-9 2V61Z" fill="url(#paper)"/><path d="M153 69h79v163h-79z" stroke="#445438" stroke-width=".7"/><path d="M158 74h69v17h-69z" stroke="#445438" stroke-width=".6"/><path d="M165 81h7m-3-4v9m8-9v9m4-9v9m5-9 4 4-4 4m8-8v8m4-8h7m-3 0v8m9-8v8m5-8 5 8" stroke="#445438" stroke-width="1.2"/><g stroke="#3a5035" stroke-linecap="round" stroke-linejoin="round"><path d="m192 100-11 11h22l-11-11Zm0 10v85m-24-70h49m-39 0 14 14 14-14m-40 27 26-13 26 13m-51 11h51m-41-11v31m30-31v31m-30-11 15 11 15-11m-39 21 24-10 23 10m-34 11h22m-11-10v21" stroke-width="2.4"/><path d="m161 105 6 5m54-5-6 5m-53 88 9-5m51 5-9-5" stroke-width="1.4"/><circle cx="192" cy="219" r="8" stroke-width="1.3"/><path d="m187 219 5-5 5 5-5 5-5-5Z"/></g><path d="m156 90 72 140m-59-157 58 114" stroke="#e7e7c1" opacity=".07" stroke-width="8"/></g><g fill="#bccea2"><path d="m94 109 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" opacity=".7"/><path d="m279 208 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" opacity=".8"/><circle cx="288" cy="100" r="2" opacity=".6"/><circle cx="109" cy="224" r="1.8" opacity=".5"/><circle cx="72" cy="194" r="1.3" opacity=".4"/></g></svg></div><div class="hero-index mono">PROTECTION · TRUST · TOGETHER</div></section>
-<section class="stats" aria-label="팀 현황"><div class="stat"><div class="stat-icon"><svg class="icon"><use href="#i-users"/></svg></div><div><div class="stat-label">함께하는 팀원</div><div class="stat-value"><span id="memberTotal">00</span><small>명</small></div></div><span class="stat-sub">OUR TEAM</span></div><div class="stat"><div class="stat-icon gold"><svg class="icon"><use href="#i-spark"/></svg></div><div><div class="stat-label">우리 팀의 능력</div><div class="stat-value"><span id="abilityTotal">00</span><small>가지</small></div></div><span class="stat-sub">ABILITIES</span></div><div class="stat"><div class="stat-icon gray"><svg class="icon"><use href="#i-shield"/></svg></div><div><div class="stat-label">기록 보관 방식</div><div class="stat-value status">GitHub 비공개</div></div></div></section>
-<div class="workspace"><section id="memberSection"><div class="section-head"><div><div class="section-title"><h2>우리 팀원들</h2><span class="number" id="sectionCount">0</span></div><p>각자의 특별함을, 하나의 기록으로.</p></div><button class="btn btn-primary" id="addButton"><svg class="icon"><use href="#i-plus"/></svg>팀원 추가</button></div><div class="toolbar"><div class="search"><svg class="icon"><use href="#i-search"/></svg><input id="searchInput" type="search" placeholder="이름, 학교, 능력으로 검색" aria-label="팀원 검색" autocomplete="off"></div><select id="sortSelect" aria-label="팀원 정렬"><option value="leader">팀장 우선</option><option value="name">이름순</option><option value="recent">최근 등록순</option></select><div class="view-toggle" aria-label="보기 방식"><button id="gridView" class="active" aria-label="카드형 보기" aria-pressed="true"><svg class="icon"><use href="#i-grid"/></svg></button><button id="listView" aria-label="목록형 보기" aria-pressed="false"><svg class="icon"><use href="#i-list"/></svg></button></div></div><div class="member-grid" id="memberGrid" aria-live="polite"></div><div class="archive-foot"><svg class="icon"><use href="#i-lock"/></svg><span>우리 팀의 정보는 소중해요. 친구의 동의를 받고 기록해 주세요.</span></div></section>
-<aside class="right-column"><section class="leader-panel"><div class="panel-heading"><h2><svg class="icon"><use href="#i-crown"/></svg>우리를 이끄는 팀장</h2><span class="tiny mono">LEADER</span></div><div id="leaderInfo"></div><button class="btn btn-outline" id="changeLeader"><svg class="icon"><use href="#i-crown"/></svg>팀장 선택 · 변경</button></section><section class="note-panel"><div class="note-title"><svg class="icon"><use href="#i-book"/></svg>기록실의 작은 약속</div><p>하나, 서로의 특별함을 존중하기.<br>둘, 친구의 비밀을 지켜주기.<br>셋, 우리의 기록을 가끔 백업하기.</p><button id="noteBackup">기록 파일 · GitHub 보기<svg class="icon"><use href="#i-arrow"/></svg></button></section></aside></div>
-<footer class="footer"><div class="footer-brand"><svg class="icon"><use href="#i-seal"/></svg>THE SPIRIT ARCHIVE</div><span>우리의 이야기는, 우리가 함께 기록해요.</span></footer></div></main>
-<div class="toast-region" id="toasts" role="status" aria-live="polite"></div>
-<dialog id="memberDialog" aria-labelledby="memberDialogTitle"><form id="memberForm"><div class="dialog-head"><div><div class="eyebrow">MEMBER DOSSIER</div><h2 id="memberDialogTitle">새로운 팀원 기록</h2><p>저장하면 같은 기록실의 친구들에게도 변경사항이 반영돼요.</p></div><button type="button" class="icon-btn" data-close="memberDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><div class="form-grid"><div class="field"><label for="fName">이름 <b>*</b></label><input id="fName" name="name" maxlength="30" required placeholder="팀원의 이름" autocomplete="off"></div><div class="field"><label for="fGender">성별</label><select id="fGender" name="gender"><option value="">선택 안 함</option><option>여자</option><option>남자</option><option>기타</option><option>비공개</option></select></div><div class="field"><label for="fAge">나이</label><input id="fAge" name="age" type="number" min="1" max="120" placeholder="예: 12"><small>사용하는 나이 기준으로 직접 입력해요.</small></div><div class="field"><label for="fBirth">출생 연도</label><input id="fBirth" name="birthYear" type="number" min="1900" max="2100" placeholder="예: 2015"></div><div class="three-fields"><div class="field"><label for="fSchool">학교</label><input id="fSchool" name="school" maxlength="70" placeholder="학교 이름 (선택)"></div><div class="field"><label for="fGrade">학년</label><input id="fGrade" name="grade" type="number" min="1" max="12" placeholder="예: 5"></div><div class="field"><label for="fClass">반</label><input id="fClass" name="classroom" maxlength="15" placeholder="예: 2"></div></div><div class="field full"><label for="fPosition">팀 내 역할</label><input id="fPosition" name="position" maxlength="40" placeholder="예: 탐색 담당, 결계 담당 (선택)"><small>팀장은 아래에서 지정하고, 이곳에는 맡은 역할을 적어요.</small></div><div class="field full"><label for="fAbilities">특별한 능력</label><input id="fAbilities" name="abilities" maxlength="300" placeholder="예: 귀신 봄, 퇴마, 예지"><small>쉼표(,)로 구분하면 능력 태그가 돼요. 최대 12개, 각 30자.</small></div><div class="field full"><label for="fMemo">우리만의 메모</label><textarea id="fMemo" name="memo" maxlength="1500" placeholder="좋아하는 것, 팀원에게 하고 싶은 말, 캐릭터 설정…"></textarea></div></div><label class="check-row"><input id="fLeader" type="checkbox">이 팀원을 팀장으로 지정하기</label><details class="private-details"><summary>개인정보 · 주소 (선택 입력)</summary><p>상세 집주소는 적지 않는 것을 추천해요. 동네나 별칭만으로도 충분해요. 여기에 적은 내용은 암호화되지 않고 비공개 GitHub 저장소와 커밋 이력에 남으며, 팀원 카드에는 표시되지 않아요.</p><label class="field"><span class="small">주소 또는 동네 별칭</span><input id="fAddress" name="address" maxlength="200" placeholder="예: 부평구 / 달빛 기지" autocomplete="off"></label></details></div><div class="dialog-foot"><button type="button" class="delete-member" id="deleteMember"><svg class="icon"><use href="#i-trash"/></svg>팀원 삭제</button><button type="button" class="btn btn-outline" data-close="memberDialog">취소</button><button type="submit" class="btn btn-primary"><svg class="icon"><use href="#i-save"/></svg>GitHub에 저장</button></div></form></dialog>
-<dialog id="renameDialog" aria-labelledby="renameTitle"><form id="renameForm"><div class="dialog-head"><div><div class="eyebrow">OUR TEAM IDENTITY</div><h2 id="renameTitle">우리 팀의 이름</h2><p>새로운 이름으로, 이야기를 이어가요.</p></div><button type="button" class="icon-btn" data-close="renameDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><div class="field"><label for="teamNameInput">팀명 <b>*</b></label><input id="teamNameInput" maxlength="30" required placeholder="예: 퇴마사"><small>최대 30자. 모든 팀원에게 같은 팀명이 적용돼요.</small></div></div><div class="dialog-foot"><button type="button" class="btn btn-outline" data-close="renameDialog">취소</button><button class="btn btn-primary" type="submit">GitHub에 저장</button></div></form></dialog>
-<dialog id="leaderDialog" aria-labelledby="leaderTitle"><div class="dialog-head"><div><div class="eyebrow">THE ONE WHO LEADS</div><h2 id="leaderTitle">팀장 선택</h2><p>팀은 한 명의 팀장과 함께해요. 변경할 친구를 선택하세요.</p></div><button class="icon-btn" data-close="leaderDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body" id="leaderOptions"></div><div class="dialog-foot"><button class="btn btn-outline" data-close="leaderDialog">닫기</button></div></dialog>
-<dialog id="backupDialog" aria-labelledby="backupTitle"><div class="dialog-head"><div><div class="eyebrow">KEEP OUR STORIES</div><h2 id="backupTitle">저장 · 불러오기</h2><p>소중한 기록을 파일로 보관하고, GitHub 기록과 백업 파일을 관리해요.</p></div><button class="icon-btn" data-close="backupDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><div class="backup-actions"><button class="backup-action" id="exportButton"><svg class="icon"><use href="#i-download"/></svg><strong>기록 파일 내보내기</strong><p>현재 팀 기록의 사본을<br>JSON 파일로 내려받아요.</p></button><button class="backup-action" id="importButton"><svg class="icon"><use href="#i-upload"/></svg><strong>기록 파일 불러오기</strong><p>백업 파일로 팀 전체 기록을<br>교체하고 GitHub에 저장해요.</p></button></div><label class="check-inline"><input type="checkbox" id="includeAddresses">내보내는 파일에 주소도 포함하기 (기본 제외)</label><div class="callout">‘GitHub에 저장’을 누르면 비공개 저장소에 커밋돼요. 다른 친구의 변경사항은 ‘최신 기록’으로 즉시 불러오거나, 편집하지 않을 때 약 30초마다 확인해요.<br><br>백업 파일 불러오기는 팀 전체 기록을 바꿔요. 백업 파일에도 개인정보가 있으니 공개하지 마세요. GitHub는 삭제한 내용도 커밋 이력에 남기므로 상세 집주소는 기록하지 마세요.</div><a class="btn btn-outline" id="githubFileLink" href="https://github.com" target="_blank" rel="noopener noreferrer" style="margin-top:16px">GitHub에서 확인 (관리자) ↗</a><p class="small muted" style="margin-top:14px" id="lastSavedInfo"></p></div><div class="dialog-foot"><button class="btn btn-outline" data-close="backupDialog">닫기</button></div></dialog>
-<dialog id="guideDialog" aria-labelledby="guideTitle"><div class="dialog-head"><div><div class="eyebrow">A LITTLE FIELD GUIDE</div><h2 id="guideTitle">기록실 사용 안내</h2><p>우리만의 팀을 만드는 네 가지 방법.</p></div><button class="icon-btn" data-close="guideDialog" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><div class="help-list">
-<div class="help-item"><div class="help-number mono">01</div><div><h3>권한이 있는 친구만 입장해요</h3><p>Cloudflare 서버가 공용 비밀번호를 확인합니다. GitHub 토큰은 서버에만 보관하고, 같은 비밀번호를 사용하는 팀원은 같은 기록 관리 권한을 갖습니다.</p></div></div>
-<div class="help-item"><div class="help-number mono">02</div><div><h3>수정한 뒤 GitHub에 저장해요</h3><p>팀명 변경, 팀원 추가·수정·삭제, 팀장 변경은 모두 비공개 저장소의 같은 JSON 파일에 저장돼요. 성공 알림을 확인해야 저장이 완료된 거예요. 단순히 입력만 한 내용은 저장되지 않아요.</p></div></div>
-<div class="help-item"><div class="help-number mono">03</div><div><h3>함께 편집해도 덮어쓰지 않아요</h3><p>평소에는 30초마다 최신 기록을 확인해요. 창을 편집 중이면 자동 반영을 잠시 멈춰요. 친구가 먼저 저장했다면 충돌을 알리고 덮어쓰지 않아요. 내 변경을 파일로 보관하고 최신 기록을 불러온 다음 필요한 부분만 다시 적용해 주세요.</p></div></div>
-<div class="help-item"><div class="help-number mono">04</div><div><h3>사용한 뒤 로그아웃해요</h3><p>로그인은 기본 12시간 유지됩니다. 팀 기록은 화면 메모리에만 불러오며, 사용 후에는 서버 로그아웃을 해 주세요. 우측 상단 자물쇠로 로그아웃하면 화면과 메모리의 기록을 비워요. 브라우저의 GitHub 로그인은 별도이므로 공용 기기에서는 GitHub에서도 로그아웃하세요.</p></div></div>
-</div><div class="callout">팀원 정보는 GitHub로 전송되며 저장소 커밋 이력에도 남아요. 친구에게 동의를 받고, 실제 상세 주소 대신 가상 설정이나 별칭을 사용하세요. GitHub 연결키는 서버에만 보관합니다. 공용 비밀번호 방식이므로 팀원별로 서로 다른 권한을 구분하지는 않습니다.</div></div><div class="dialog-foot"><button class="btn btn-primary" data-close="guideDialog">좋아, 기록하러 가기</button></div></dialog>
-<dialog id="confirmDialog" aria-labelledby="confirmTitle"><div class="dialog-head"><h2 id="confirmTitle">확인해 주세요</h2><button class="icon-btn" id="confirmClose" aria-label="닫기"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="dialog-body"><p class="confirm-message" id="confirmMessage"></p></div><div class="dialog-foot"><button class="btn btn-outline" id="confirmCancel">취소</button><button class="btn btn-primary" id="confirmOkay">확인</button></div></dialog>
-<input type="file" id="importFile" accept=".json,application/json" hidden>
-<script src="./config.js"></script>
-<script>
-'use strict';
-// Public configuration contains repository coordinates only. Never put a token here.
-const $ = id => document.getElementById(id);
-const icon = name => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const EMPTY = {version:1,teamName:'퇴마사',leaderId:null,updatedAt:null,members:[]};
-const LIMIT = 900000, POLL_MS = 30000;
-let state=structuredClone(EMPTY), session=null, editingId=null, view='grid', busy=false, polling=false, pendingDraft=null, formSnapshot='', lastCheck=null, syncError='', pollAfter=0, epoch=0, lastIssue='', confirmResolver=null, needsReauth=false;
-const requests=new Set();
-const config=Object.assign({owner:'',repo:'',branch:'main',path:'data/team.json'},window.ARCHIVE_CONFIG||{});
-function text(value,max,label,required=false){if(typeof value!=='string'||value.length>max||(required&&!value.trim()))throw new Error(label+' 형식이 올바르지 않아요.');return value.trim();}
-function numberText(value,min,max,label){if(value===undefined||value===null||value==='')return '';const s=String(value);if(!/^\d+$/.test(s)||Number(s)<min||Number(s)>max)throw new Error(label+' 범위를 확인해 주세요.');return s;}
-function validate(data){
- if(!data||data.version!==1||!Array.isArray(data.members)||data.members.length>300)throw new Error('지원하는 팀 기록 형식(version 1)이 아니거나 팀원이 300명을 초과했어요.');
- const teamName=text(data.teamName,30,'팀명',true),ids=new Set();
- const members=data.members.map(m=>{if(!m||typeof m!=='object')throw new Error('팀원 정보가 올바르지 않아요.');const id=text(m.id,100,'기록 ID',true);if(ids.has(id))throw new Error('중복된 팀원 기록이 있어요.');ids.add(id);if(!Array.isArray(m.abilities)||m.abilities.length>12)throw new Error('능력은 팀원마다 12개까지 가능해요.');const gender=text(m.gender??'',10,'성별');if(!['','여자','남자','기타','비공개'].includes(gender))throw new Error('성별 선택값을 확인해 주세요.');return{id,name:text(m.name,30,'이름',true),gender,age:numberText(m.age,1,120,'나이'),birthYear:numberText(m.birthYear,1900,2100,'출생 연도'),school:text(m.school??'',70,'학교'),grade:numberText(m.grade,1,12,'학년'),classroom:text(m.classroom??'',15,'반'),position:text(m.position??'',40,'역할'),abilities:[...new Set(m.abilities.map(a=>text(a,30,'능력',true)))],address:text(m.address??'',200,'주소'),memo:text(m.memo??'',1500,'메모'),createdAt:typeof m.createdAt==='string'&&Number.isFinite(Date.parse(m.createdAt))?new Date(m.createdAt).toISOString():new Date().toISOString()};});
- if(members.length&&(!data.leaderId||!ids.has(data.leaderId)))throw new Error('팀장으로 지정된 팀원의 기록을 찾을 수 없어요.');if(!members.length&&data.leaderId!==null)throw new Error('팀원이 없는 기록은 팀장을 지정할 수 없어요.');
- return{version:1,teamName,leaderId:members.length?data.leaderId:null,members,updatedAt:typeof data.updatedAt==='string'&&Number.isFinite(Date.parse(data.updatedAt))?new Date(data.updatedAt).toISOString():null};
-}
-function toast(message,error=false){const el=document.createElement('div');el.className='toast'+(error?' error':'');el.textContent=message;$('toasts').append(el);while($('toasts').children.length>2)$('toasts').firstElementChild.remove();setTimeout(()=>el.remove(),error?9000:4000);}
-function githubUrl(){const c=session.config;return 'https://github.com/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/blob/'+encodeURIComponent(c.branch)+'/'+c.path.split('/').map(encodeURIComponent).join('/');}
-function explain(error){if(error.name==='AbortError')return '응답 시간이 초과됐어요. 저장 요청이었다면 최신 기록을 확인한 뒤 다시 시도해 주세요.';if(error instanceof TypeError)return '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.';return error.message||'요청을 완료하지 못했어요.';}
-async function api(path,options={}){if(!/^\/api\/(login|logout|session|archive)$/.test(path))throw new Error('지원하지 않는 서버 경로예요.');const controller=new AbortController();requests.add(controller);const timeout=setTimeout(()=>controller.abort(),30000);try{const response=await fetch(path,{method:options.method||'GET',headers:{Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{})},body:options.body?JSON.stringify(options.body):undefined,cache:'no-store',credentials:'same-origin',redirect:'error',referrerPolicy:'no-referrer',signal:controller.signal});let data;try{data=await response.json();}catch(e){throw new Error('서버 API에 연결할 수 없어요. 배포된 Cloudflare 홈페이지에서 열어 주세요.');}if(!response.ok){const error=new Error(data.error?.message||'서버가 요청을 완료하지 못했어요.');error.status=response.status;error.code=data.error?.code||'SERVER_ERROR';error.rateLimited=response.status===429;if(error.status===401&&path!=='/api/login')needsReauth=true;if(error.rateLimited){const seconds=Number(response.headers.get('retry-after'))||60;pollAfter=Date.now()+seconds*1000;}throw error;}return data;}finally{clearTimeout(timeout);requests.delete(controller);}}
-function encodeJson(data){const bytes=new TextEncoder().encode(JSON.stringify(data,null,2)+'\n');if(bytes.length>LIMIT)throw new Error('기록 파일이 너무 커요. 900KB 이하로 줄여 주세요.');let bin='';for(let i=0;i<bytes.length;i+=8192)bin+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(bin);}
-async function readRemote(){const data=await api('/api/archive');if(!/^[a-f0-9]{40,64}$/.test(data.sha||''))throw new Error('서버의 기록 버전을 확인하지 못했어요.');return{state:validate(data.state),sha:data.sha,connection:data.connection};}
-function updateSaveStatus(){const label=busy?'GitHub에 저장 중…':pendingDraft?'미저장 변경 있음':syncError?'최신 확인 필요':lastCheck?'GitHub 연결됨':'연결 확인 중';$('saveLabel').textContent=label;$('saveState').classList.toggle('dirty',Boolean(pendingDraft||syncError));$('saveState').title=pendingDraft?'저장되지 않은 변경 보기':syncError||('최근 확인: '+(lastCheck?new Date(lastCheck).toLocaleTimeString('ko-KR'):'없음'));}
-function setBusy(value){busy=value;document.body.classList.toggle('busy-overlay',value);document.querySelectorAll('button').forEach(b=>{if(value){b.dataset.wasDisabled=String(b.disabled);b.disabled=true;}else if('wasDisabled'in b.dataset){b.disabled=b.dataset.wasDisabled==='true';delete b.dataset.wasDisabled;}});document.querySelectorAll('dialog input,dialog textarea,dialog select,#loginForm input').forEach(el=>{if(value){el.dataset.wasDisabled=String(el.disabled);el.disabled=true;}else if('wasDisabled'in el.dataset){el.disabled=el.dataset.wasDisabled==='true';delete el.dataset.wasDisabled;}});updateSaveStatus();}
-function confirmAction(title,message,label='확인',danger=false){return new Promise(resolve=>{if(confirmResolver){resolve(false);return;}const d=$('confirmDialog');$('confirmTitle').textContent=title;$('confirmMessage').textContent=message;$('confirmOkay').textContent=label;$('confirmOkay').className='btn '+(danger?'btn-danger':'btn-primary');confirmResolver=resolve;d.showModal();$('confirmCancel').focus();});}
-function finishConfirm(accepted){const resolve=confirmResolver;confirmResolver=null;$('confirmDialog').close();if(resolve)resolve(accepted);}
-$('confirmOkay').onclick=()=>finishConfirm(true);$('confirmCancel').onclick=()=>finishConfirm(false);$('confirmClose').onclick=()=>finishConfirm(false);$('confirmDialog').addEventListener('cancel',e=>{e.preventDefault();if(!busy)finishConfirm(false);});
-function showIssue(message=lastIssue){lastIssue=message||'저장하지 않은 변경사항이 있어요.';$('issueMessage').textContent=lastIssue;$('reauthButton').hidden=!needsReauth;if(!$('issueDialog').open)$('issueDialog').showModal();}
-function contentSignature(data){return JSON.stringify({...data,updatedAt:null});}
-async function commit(candidate,message='Update team archive'){
- if(!session||busy)return false;let next;try{next=validate(candidate);encodeJson(next);}catch(e){toast(explain(e),true);return false;}
- if(pendingDraft&&contentSignature(pendingDraft)!==contentSignature(next)){if(!(await confirmAction('이전 미저장 변경이 있어요','새 변경으로 미저장 초안을 바꿀까요? 이전 초안이 필요하면 취소한 뒤 상단 상태 표시에서 파일로 보관해 주세요.','새 변경으로 저장')))return false;}
- pendingDraft=next;const auth=session,requestEpoch=epoch;setBusy(true);let success=false,errorMessage='';
- try{const result=await api('/api/archive',{method:'PUT',body:{state:next,sha:auth.sha}});if(requestEpoch!==epoch)return false;if(!/^[a-f0-9]{40,64}$/.test(result.sha||''))throw new Error('저장 응답을 확인하지 못했어요. 최신 기록을 확인해 주세요.');session.sha=result.sha;session.config=result.connection;state=validate(result.state);pendingDraft=null;syncError='';needsReauth=false;lastCheck=Date.now();success=true;}
- catch(e){if(requestEpoch===epoch){errorMessage=explain(e);syncError=errorMessage;}}
- finally{setBusy(false);if(requestEpoch===epoch)render();}
- if(errorMessage)showIssue(errorMessage);return success;
-}
-function shortClass(m){return [m.grade?m.grade+'학년':'',m.classroom?m.classroom+'반':''].filter(Boolean).join(' ');}
-function avatar(m,leader=false){return `<div class="avatar" aria-hidden="true">${esc([...m.name][0])}${leader?'<span class="mini-star">✦</span>':''}</div>`;}
-function render(){
- document.title=state.teamName+' · 비밀 기록실';$('sideTeam').textContent=state.teamName;$('heroTeam').textContent='팀 '+state.teamName;
- for(const id of ['navCount','sectionCount'])$(id).textContent=state.members.length;$('memberTotal').textContent=String(state.members.length).padStart(2,'0');$('abilityTotal').textContent=String(new Set(state.members.flatMap(m=>m.abilities)).size).padStart(2,'0');renderMembers();renderLeader();updateSaveStatus();
-}
-function renderMembers(){
- const query=$('searchInput').value.trim().toLocaleLowerCase('ko');const sort=$('sortSelect').value;
- const members=state.members.filter(m=>[m.name,m.school,m.position,...m.abilities,m.id===state.leaderId?'팀장':'팀원'].some(v=>v.toLocaleLowerCase('ko').includes(query))).sort((a,b)=>sort==='name'?a.name.localeCompare(b.name,'ko'):sort==='recent'?Date.parse(b.createdAt)-Date.parse(a.createdAt):Number(b.id===state.leaderId)-Number(a.id===state.leaderId)||Date.parse(a.createdAt)-Date.parse(b.createdAt));
- $('sectionCount').textContent=query?members.length+' / '+state.members.length:state.members.length;
- $('memberGrid').className='member-grid'+(view==='list'?' list':'');
- $('memberGrid').innerHTML=members.map(m=>{const leader=m.id===state.leaderId;const ordinal=String(state.members.findIndex(x=>x.id===m.id)+1).padStart(3,'0');return `<article class="member-card ${leader?'leader':''}">${leader?'<div class="card-ribbon"></div>':''}<div class="card-top">${avatar(m,leader)}<div class="card-name"><h3 title="${esc(m.name)}">${esc(m.name)}</h3><div class="card-id mono">MEMBER · ${ordinal}</div></div><span class="role-badge ${leader?'':'member'}">${leader?'♔ 팀장':'팀원'}</span></div><div class="member-meta">${esc(m.gender||'성별 비공개')}<i>·</i>${m.age?esc(m.age)+'살':'나이 미입력'}${m.birthYear?'<i>·</i>'+esc(m.birthYear.slice(-2))+'년생':''}</div><div class="school">${icon('school')}<div>${esc(m.school||'학교 미입력')}${shortClass(m)?'<br><span class="small" style="font-size:10px;color:#7e957f">'+esc(shortClass(m))+'</span>':''}</div></div><div class="abilities">${m.abilities.length?m.abilities.map((a,i)=>`<span class="ability">${icon(i%3===0?'eye':i%3===1?'seal':'spark')}${esc(a)}</span>`).join(''):'<span class="small muted" style="font-size:10px">발견할 능력이 기다리고 있어요</span>'}</div><div class="card-footer"><span class="mono">${m.position?esc(m.position):'SPIRIT ARCHIVE'}</span><button data-edit="${esc(m.id)}" aria-label="${esc(m.name)} 기록 열기">기록 열기${icon('arrow')}</button></div></article>`;}).join('');
- if(!members.length&&query){$('memberGrid').insertAdjacentHTML('beforeend','<div class="empty">검색 결과가 없어요.<p>이름, 학교 또는 능력을 다시 확인해 보세요.</p><button class="btn btn-outline" id="clearSearch">검색 초기화</button></div>');$('clearSearch').onclick=()=>{$('searchInput').value='';renderMembers();$('searchInput').focus();};}
- else{$('memberGrid').insertAdjacentHTML('beforeend',`<button class="add-card" id="addCard"><span class="plus-circle">${icon('plus')}</span><strong>${state.members.length?'새로운 동료를 기다려요':'첫 번째 동료를 기록해요'}</strong><p>각자의 특별한 능력으로<br>우리 팀을 더 단단하게.</p><span class="link">팀원 등록하기${icon('arrow')}</span></button>`);$('addCard').onclick=()=>openMember();}
- $('memberGrid').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openMember(b.dataset.edit));
-}
-function renderLeader(){const m=state.members.find(x=>x.id===state.leaderId);$('leaderInfo').innerHTML=m?`<div class="leader-profile">${avatar(m)}<div><strong>${esc(m.name)}</strong><small>팀 ${esc(state.teamName)} · 팀장</small></div></div><dl class="leader-facts"><dt>소속 학교</dt><dd>${esc(m.school||'미입력')}</dd><dt>학년 · 반</dt><dd>${esc(shortClass(m)||'미입력')}</dd><dt>보유 능력</dt><dd>${m.abilities.length?esc(m.abilities.join(' · ')):'아직 미입력'}</dd>${m.position?'<dt>맡은 역할</dt><dd>'+esc(m.position)+'</dd>':''}</dl>`:'<div style="padding:25px 0 6px"><p style="font-size:13px">아직 팀장이 없어요.</p><p class="small muted" style="margin-top:7px">첫 팀원을 등록하면 팀장이 돼요.</p></div>';}
-
-function closeMenu(){$('sidebar').classList.remove('open');$('scrim').classList.remove('show');$('menuButton').setAttribute('aria-expanded','false');}
-function openDialog(id){if(!session)return;closeMenu();$(id).showModal();}
-function formSignature(){return JSON.stringify([...new FormData($('memberForm')).entries()])+String($('fLeader').checked);}
-function openMember(id){if(!session||busy)return;if(!id&&state.members.length>=300){toast('팀원은 최대 300명까지 기록할 수 있어요.',true);return;}editingId=id||null;const m=state.members.find(x=>x.id===id);$('memberForm').reset();$('memberDialog').querySelector('details').open=false;$('memberDialogTitle').textContent=m?'팀원 기록 수정':'새로운 팀원 기록';$('deleteMember').hidden=!m;for(const key of ['name','gender','age','birthYear','school','grade','classroom','position','memo','address'])$('memberForm').elements.namedItem(key).value=m?.[key]??'';$('fAbilities').value=m?.abilities.join(', ')??'';$('fLeader').checked=m?id===state.leaderId:state.members.length===0;$('fLeader').disabled=Boolean(m&&id===state.leaderId)||!state.members.length;openDialog('memberDialog');formSnapshot=formSignature();}
-async function closeMemberSafely(){if(busy)return;if(formSignature()!==formSnapshot){if(!(await confirmAction('작성 중인 기록이 있어요','GitHub에 저장하지 않은 입력이 사라져요. 작성을 그만둘까요?','저장하지 않고 닫기')))return;}$('memberDialog').close();}
-$('memberForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;const name=$('fName').value.trim();if(!name){$('fName').setCustomValidity('이름을 입력해 주세요.');$('fName').reportValidity();return;}const abilities=[...new Set($('fAbilities').value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean))];if(abilities.length>12||abilities.some(x=>x.length>30)){toast('능력은 최대 12개, 각 30자까지 적을 수 있어요.',true);$('fAbilities').focus();return;}const existing=state.members.find(x=>x.id===editingId);const m={id:existing?.id??('member-'+(globalThis.crypto?.randomUUID?.()??Date.now().toString(36)+'-'+Math.random().toString(36).slice(2))),createdAt:existing?.createdAt??new Date().toISOString(),abilities};for(const key of ['name','gender','age','birthYear','school','grade','classroom','position','memo','address'])m[key]=$('memberForm').elements.namedItem(key).value.trim();const candidate=structuredClone(state);if(existing)candidate.members[candidate.members.findIndex(x=>x.id===existing.id)]=m;else candidate.members.push(m);if($('fLeader').checked||!candidate.leaderId)candidate.leaderId=m.id;if(await commit(candidate,existing?'Edit member record':'Add member record')){$('memberDialog').close();toast('팀원 기록을 GitHub에 저장했어요.');}});
-$('fName').oninput=()=>$('fName').setCustomValidity('');
-$('deleteMember').onclick=async()=>{if(busy)return;const m=state.members.find(x=>x.id===editingId);if(!m)return;const next=state.members.find(x=>x.id!==m.id);let msg=`${m.name} 님의 기록을 현재 팀에서 삭제할까요?\n삭제해도 GitHub의 과거 커밋 이력에는 남아요.`;if(m.id===state.leaderId&&next)msg+=`\n\n${next.name} 님이 새 팀장이 돼요. 나중에 변경할 수 있어요.`;if(await confirmAction('팀원 기록 삭제',msg,'삭제하기',true)){const candidate=structuredClone(state);candidate.members=candidate.members.filter(x=>x.id!==m.id);if(candidate.leaderId===m.id)candidate.leaderId=next?.id??null;if(await commit(candidate,'Remove member record')){$('memberDialog').close();toast('팀원 삭제를 GitHub에 저장했어요.');}}};
-$('renameButton').onclick=()=>{$('teamNameInput').value=state.teamName;openDialog('renameDialog');};
-$('renameForm').onsubmit=async e=>{e.preventDefault();if(busy)return;const name=$('teamNameInput').value.trim();if(!name){$('teamNameInput').setCustomValidity('팀명을 입력해 주세요.');$('teamNameInput').reportValidity();return;}const candidate=structuredClone(state);candidate.teamName=name;if(await commit(candidate,'Rename team')){$('renameDialog').close();toast('우리 팀의 이름을 GitHub에 저장했어요.');}};$('teamNameInput').oninput=()=>$('teamNameInput').setCustomValidity('');
-function openLeader(){if(busy)return;$('leaderOptions').innerHTML=state.members.length?state.members.map(m=>`<button class="leader-option ${m.id===state.leaderId?'selected':''}" data-leader="${esc(m.id)}" aria-label="${esc(m.name)} ${m.id===state.leaderId?'현재 팀장':'팀장으로 선택'}">${avatar(m)}<div><strong>${esc(m.name)}</strong><small>${esc(m.school||'학교 미입력')} ${esc(shortClass(m))}</small></div>${m.id===state.leaderId?'<span class="role-badge">현재 팀장</span>':''}</button>`).join(''):'<div class="empty">아직 등록된 팀원이 없어요.<p>팀원을 먼저 추가해 주세요.</p><button class="btn btn-primary" id="leaderAdd">첫 팀원 추가하기</button></div>';$('leaderOptions').querySelectorAll('[data-leader]').forEach(b=>b.onclick=async()=>{if(busy)return;if(state.leaderId===b.dataset.leader){$('leaderDialog').close();return;}const candidate=structuredClone(state);candidate.leaderId=b.dataset.leader;if(await commit(candidate,'Change team leader')){$('leaderDialog').close();toast('팀장 변경을 GitHub에 저장했어요.');}});if($('leaderAdd'))$('leaderAdd').onclick=()=>{$('leaderDialog').close();openMember();};openDialog('leaderDialog');}
-function downloadJson(data,suffix,includeAddresses){const copy=structuredClone(data);copy.exportedAt=new Date().toISOString();if(!includeAddresses)copy.members.forEach(m=>m.address='');const blob=new Blob([JSON.stringify(copy,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=copy.teamName.replace(/[<>:"/\\|?*\u0000-\u001f]/g,'_')+'-'+suffix+'-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
-function openBackup(){if(!session)return;$('lastSavedInfo').textContent=(state.updatedAt?'기록의 마지막 저장 · '+new Date(state.updatedAt).toLocaleString('ko-KR'):'아직 팀원 기록이 없어요.')+' / '+session.config.owner+'/'+session.config.repo;$('githubFileLink').href=githubUrl();openDialog('backupDialog');}
-$('exportButton').onclick=()=>{downloadJson(state,'팀기록',$('includeAddresses').checked);toast($('includeAddresses').checked?'기록 사본을 내보냈어요. 개인정보를 소중히 보관해 주세요.':'주소를 제외한 기록 사본을 내보냈어요.');};
-$('importButton').onclick=()=>{$('importFile').value='';$('importFile').click();};
-$('importFile').onchange=async e=>{if(!session||busy)return;const file=e.target.files[0];if(!file)return;if(file.size>LIMIT){toast('900KB 이하의 기록 파일을 선택해 주세요.',true);return;}let incoming;try{incoming=validate(JSON.parse(await file.text()));}catch(err){toast(err instanceof SyntaxError?'올바른 JSON 백업 파일인지 확인해 주세요.':err.message,true);return;}if(await confirmAction('팀 전체 기록 교체',`‘${incoming.teamName}’ 팀의 기록 ${incoming.members.length}명을 GitHub에 저장할까요?\n\n나뿐 아니라 친구들이 보는 전체 기록이 바뀌어요. 주소도 파일 내용으로 대체돼요. 필요한 기존 기록은 먼저 내보내 주세요.`,'교체하고 저장')){if(await commit(incoming,'Restore team archive from backup')){$('searchInput').value='';render();$('backupDialog').close();toast('백업 기록을 GitHub에 저장했어요.');}}};
-async function refresh(silent=false){if(!session||busy||polling)return;if(silent&&(pendingDraft||document.querySelector('dialog[open]')||document.hidden||Date.now()<pollAfter))return;const auth=session,requestEpoch=epoch,shaAtStart=session.sha;polling=true;try{const remote=await readRemote(auth);if(epoch!==requestEpoch||session!==auth||session.sha!==shaAtStart)return;if(busy||(!silent&&document.querySelector('dialog[open]'))||pendingDraft)return;if(remote.sha!==session.sha){if(document.querySelector('dialog[open]'))return;state=remote.state;session.sha=remote.sha;session.config=remote.connection||session.config;render();if(silent)toast('친구가 저장한 최신 기록을 불러왔어요.');}lastCheck=Date.now();syncError='';if(!silent)toast('GitHub의 최신 기록을 확인했어요.');}catch(e){if(epoch===requestEpoch){syncError=explain(e);if(e.status===401&&!pendingDraft&&!document.querySelector('dialog[open]')){const reason=syncError;wipeSession();$('loginError').textContent=reason;$('loginError').hidden=false;}else if(!silent)toast(syncError,true);}}finally{polling=false;updateSaveStatus();}}
-async function restoreLatest(){if(!session||busy)return;if(!(await confirmAction('최신 기록으로 돌아가기','저장하지 않은 변경과 열려 있는 편집 입력을 버리고 GitHub의 최신 기록을 불러올까요? 필요한 내용은 먼저 파일로 보관해 주세요.','최신 기록 불러오기')))return;const auth=session,requestEpoch=epoch;setBusy(true);try{const remote=await readRemote(auth);if(epoch!==requestEpoch)return;state=remote.state;session.sha=remote.sha;session.config=remote.connection||session.config;pendingDraft=null;syncError='';lastCheck=Date.now();document.querySelectorAll('dialog[open]').forEach(d=>d.close());$('memberForm').reset();render();toast('최신 기록을 불러왔어요. 필요한 변경을 다시 적용해 주세요.');}catch(e){showIssue(explain(e));}finally{setBusy(false);}}
-$('downloadDraft').onclick=()=>{if(pendingDraft){downloadJson(pendingDraft,'미저장초안',false);toast('주소를 제외한 미저장 변경을 파일로 보관했어요. 전체 기록을 덮어쓰는 복원 대신 필요한 내용만 다시 적용해 주세요.');}};
-$('retryDraft').onclick=async()=>{if(!pendingDraft||busy)return;if(await commit(pendingDraft,'Retry team archive update')){document.querySelectorAll('dialog[open]').forEach(d=>d.close());toast('변경사항을 GitHub에 저장했어요.');}};
-$('issueRefresh').onclick=restoreLatest;
-$('refreshButton').onclick=()=>pendingDraft?showIssue():refresh();$('saveState').onclick=()=>pendingDraft?showIssue():refresh();
-function activate(remote){state=remote.state;session.sha=remote.sha;lastCheck=Date.now();syncError='';pendingDraft=null;$('loginScreen').hidden=true;$('sidebar').hidden=false;$('appMain').hidden=false;$('searchInput').value='';$('sharedPassword').value='';document.querySelector('meta[name="theme-color"]').content='#101614';render();window.scrollTo(0,0);toast('우리 팀의 최신 기록을 불러왔어요.');}
-async function enterArchive(loginInfo,attempt){
- session={config:loginInfo.connection,sha:null,expiresAt:loginInfo.expiresAt};needsReauth=false;let remote;
- try{remote=await readRemote();}catch(err){if(err.code!=='ARCHIVE_NOT_INITIALIZED')throw err;setBusy(false);const yes=await confirmAction('첫 기록실 만들기','아직 팀 기록 파일이 없어요. 비공개 저장소에 팀명 ‘퇴마사’, 팀원 0명의 기록실을 만들까요?','빈 기록실 만들기');if(!yes)throw new Error('기록실 생성을 취소했어요.');setBusy(true);remote=await api('/api/archive',{method:'PUT',body:{state:structuredClone(EMPTY),sha:null}});}
- if(attempt===epoch){session.config=remote.connection||session.config;activate(remote);}
-}
-$('loginForm').onsubmit=async e=>{e.preventDefault();if(busy)return;$('loginError').hidden=true;let password=$('sharedPassword').value;if(!password)return;epoch++;const attempt=epoch;$('sharedPassword').value='';$('sharedPassword').type='password';$('togglePassword').setAttribute('aria-pressed','false');$('togglePassword').setAttribute('aria-label','비밀번호 보기');setBusy(true);$('connectButton').querySelector('span').textContent='기록실 여는 중…';try{const info=await api('/api/login',{method:'POST',body:{password}});password='';await enterArchive(info,attempt);}catch(err){if(attempt===epoch){session=null;state=structuredClone(EMPTY);$('loginError').textContent=explain(err);$('loginError').hidden=false;}}finally{password='';setBusy(false);$('connectButton').querySelector('span').textContent='기록실 들어가기';}};
-async function restoreSession(){if(session||busy)return;const attempt=++epoch;setBusy(true);$('connectButton').querySelector('span').textContent='로그인 확인 중…';try{const info=await api('/api/session');if(info.authenticated)await enterArchive(info,attempt);}catch(error){if(attempt===epoch){session=null;$('loginError').textContent=explain(error);$('loginError').hidden=false;}}finally{setBusy(false);$('connectButton').querySelector('span').textContent='기록실 들어가기';}}
-$('reauthButton').onclick=()=>{$('reauthPassword').value='';$('reauthError').hidden=true;openDialog('reauthDialog');};
-$('reauthForm').onsubmit=async e=>{e.preventDefault();if(busy)return;let password=$('reauthPassword').value;$('reauthPassword').value='';setBusy(true);try{const info=await api('/api/login',{method:'POST',body:{password}});if(session){session.expiresAt=info.expiresAt;session.config=info.connection;}needsReauth=false;syncError='';$('reauthDialog').close();$('reauthButton').hidden=true;toast('로그인을 확인했어요. 저장을 다시 시도해 주세요.');}catch(error){$('reauthError').textContent=explain(error);$('reauthError').hidden=false;}finally{password='';setBusy(false);}};
-function wipeSession(){epoch++;requests.forEach(c=>c.abort());session=null;state=structuredClone(EMPTY);pendingDraft=null;lastCheck=null;syncError='';lastIssue='';editingId=null;formSnapshot='';lastCheck=null;pollAfter=0;needsReauth=false;$('reauthForm').reset();closeMenu();if(confirmResolver)finishConfirm(false);document.querySelectorAll('dialog[open]').forEach(d=>d.close());for(const id of ['memberGrid','leaderInfo','leaderOptions'])$(id).replaceChildren();$('memberForm').reset();$('renameForm').reset();$('importFile').value='';$('includeAddresses').checked=false;$('issueMessage').textContent='';$('confirmMessage').textContent='';$('lastSavedInfo').textContent='';$('githubFileLink').href='https://github.com';$('toasts').replaceChildren();$('loginError').hidden=true;$('sharedPassword').value='';$('searchInput').value='';$('sideTeam').textContent='연결 대기';$('heroTeam').textContent='우리 팀';document.title='비밀 기록실 · GitHub 공동 기록';$('sidebar').hidden=true;$('appMain').hidden=true;$('loginScreen').hidden=false;window.scrollTo(0,0);$('sharedPassword').focus();}
-$('logoutButton').onclick=async()=>{if(busy)return;if(pendingDraft&&!(await confirmAction('로그아웃할까요?','서버에 저장하지 않은 변경사항이 사라져요. 필요한 초안은 먼저 파일로 보관해 주세요.','로그아웃')))return;setBusy(true);try{await api('/api/logout',{method:'POST',body:{}});setBusy(false);wipeSession();toast('로그아웃했어요. 다음에는 비밀번호를 다시 입력해 주세요.');}catch(error){setBusy(false);toast('서버 로그아웃을 완료하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.',true);}};
-$('togglePassword').onclick=()=>{const show=$('sharedPassword').type==='password';$('sharedPassword').type=show?'text':'password';$('togglePassword').setAttribute('aria-pressed',String(show));$('togglePassword').setAttribute('aria-label',show?'비밀번호 숨기기':'비밀번호 보기');};
-$('navMembers').onclick=()=>{closeMenu();$('memberSection').scrollIntoView({behavior:'smooth',block:'start'});};$('navLeader').onclick=openLeader;$('changeLeader').onclick=openLeader;$('navBackup').onclick=openBackup;$('noteBackup').onclick=openBackup;$('navGuide').onclick=()=>openDialog('guideDialog');$('addButton').onclick=()=>openMember();$('searchInput').oninput=renderMembers;$('sortSelect').onchange=renderMembers;
-function setView(mode){view=mode;for(const v of ['grid','list']){$(v+'View').classList.toggle('active',v===mode);$(v+'View').setAttribute('aria-pressed',String(v===mode));}renderMembers();}$('gridView').onclick=()=>setView('grid');$('listView').onclick=()=>setView('list');
-$('menuButton').onclick=()=>{const open=$('sidebar').classList.toggle('open');$('scrim').classList.toggle('show',open);$('menuButton').setAttribute('aria-expanded',String(open));};$('scrim').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{if(busy)return;b.dataset.close==='memberDialog'?closeMemberSafely():$(b.dataset.close).close();});document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(busy)e.preventDefault();}));$('memberDialog').addEventListener('cancel',e=>{e.preventDefault();if(!busy)closeMemberSafely();});
-window.addEventListener('beforeunload',e=>{if(busy||pendingDraft||($('memberDialog').open&&formSignature()!==formSnapshot)||($('renameDialog').open&&$('teamNameInput').value.trim()!==state.teamName)){e.preventDefault();e.returnValue='';}});
-// Clear page data on navigation; the HttpOnly cookie remains until server logout or expiry.
-window.addEventListener('pagehide',()=>{if(session)wipeSession();});window.addEventListener('pageshow',e=>{if(e.persisted)restoreSession();});
-setInterval(()=>refresh(true),POLL_MS);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(true);});
-// Basic interaction deterrents only. These cannot hide source or prevent developer tools.
-if(config.basicSourceDeterrence!==false){
- document.addEventListener('contextmenu',e=>{if(e.target instanceof Element&&e.target.closest('input,textarea,[contenteditable="true"]'))return;e.preventDefault();},{capture:true});
- document.addEventListener('keydown',e=>{const key=e.key.toLowerCase();const common=(e.ctrlKey||e.metaKey)&&((e.shiftKey&&['i','j','c'].includes(key))||key==='u');const mac=e.metaKey&&e.altKey&&['i','j','c'].includes(key);if(key==='f12'||common||mac){e.preventDefault();e.stopPropagation();}},{capture:true});
-}
-const now=new Date();$('today').append(document.createTextNode(new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).format(now).replaceAll('-',' . ')));const dateSub=document.createElement('span');dateSub.textContent='CONNECTED BY COURAGE';$('today').append(dateSub);
-
-
-restoreSession();
-</script>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101614" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none';"
+    />
+    <title>퇴마사 · 공동 기록실</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23101614'/%3E%3Ctext x='20' y='29' text-anchor='middle' font-size='28' fill='%23b8dfb3'%3E符%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/app.css?v=4" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-shell">
+      <header class="login-brand">
+        <span>⬡ THE SPIRIT ARCHIVE</span><small>CLOUDFLARE EDITION · 04</small>
+      </header>
+      <div class="login-intro">
+        <p class="eyebrow">OUR STORIES, ONE ARCHIVE</p>
+        <h1>우리만의 기록.<br />이제, <em>함께 이어가요.</em></h1>
+        <p class="muted">
+          서로 다른 곳에서도 같은 이야기를 펼칠 수 있도록.<br />팀의 일상과
+          특별한 세계를 한곳에 기록해요.
+        </p>
+        <span class="talisman" aria-hidden="true">符</span>
+      </div>
+      <form id="loginForm" class="panel login-card">
+        <p class="eyebrow">ENTER THE ARCHIVE</p>
+        <h2>우리 팀 기록실</h2>
+        <p class="muted">우리끼리 정한 비밀번호로 들어오세요.</p>
+        <label
+          >공용 비밀번호<input
+            id="sharedPassword"
+            type="password"
+            required
+            maxlength="200"
+            autocomplete="current-password"
+            placeholder="우리 팀 비밀번호" /></label
+        ><label class="check"
+          ><input id="showPassword" type="checkbox" />비밀번호 보기</label
+        >
+        <p class="hint">
+          로그인은 기본 12시간 유지돼요.<br />공용 기기에서는 사용 후 꼭
+          로그아웃해 주세요.
+        </p>
+        <p id="loginError" class="error" role="alert" hidden></p>
+        <button class="primary wide" id="connectButton">
+          기록실 들어가기 →
+        </button>
+        <p class="hint border-top">
+          GitHub 연결키는 서버에만 보관돼요.<br />기록과 창작 설정은 비공개
+          GitHub에 함께 저장해요.
+        </p>
+      </form>
+      <footer>PROTECTION · TRUST · TOGETHER</footer>
+    </section>
+    <div id="application" hidden>
+      <button id="navBackdrop" aria-label="메뉴 닫기" hidden></button>
+      <aside id="sidebar">
+        <a class="brand" href="#members"
+          ><span class="brand-symbol">符</span>
+          <div>
+            <b id="brandName">퇴마사</b><small>THE SPIRIT ARCHIVE</small>
+          </div></a
+        >
+        <nav id="navigation" aria-label="주 메뉴"></nav>
+        <p class="sidebar-note">
+          공용 비밀번호 · 공동 편집<br />선택 프로필은 본인 인증이 아닙니다.<br />창작
+          능력·등급은 설정용입니다.
+        </p>
+      </aside>
+      <div class="app-main">
+        <header class="topbar">
+          <button id="menuButton" aria-label="메뉴 열기" aria-expanded="false">
+            ☰
+          </button>
+          <div id="saveLabel" class="save-status" aria-live="polite">
+            기록 연결 중
+          </div>
+          <button id="refreshButton" title="최신 기록 불러오기">
+            ↻ <span>최신 기록</span></button
+          ><button id="logoutButton" title="로그아웃">나가기</button>
+        </header>
+        <div class="identity-bar">
+          <label for="actorSelect">활동 프로필</label
+          ><select id="actorSelect">
+            <option value="">미선택</option></select
+          ><span>이름 선택 방식 · 본인 인증 아님</span>
+        </div>
+        <main id="view" tabindex="-1"></main>
+        <footer class="app-footer">
+          우리의 이야기는, 우리가 함께 기록해요.
+          <span>THE SPIRIT ARCHIVE · 04</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="editor">
+      <form id="editorForm">
+        <header class="dialog-head">
+          <div>
+            <p class="eyebrow">WRITE OUR STORIES</p>
+            <h2 id="editorTitle"></h2>
+          </div>
+          <button type="button" data-close="editor" aria-label="닫기">×</button>
+        </header>
+        <div id="editorFields" class="dialog-body"></div>
+        <footer class="dialog-foot">
+          <small>팀 전체에 공유됩니다</small
+          ><button type="button" data-close="editor">취소</button
+          ><button type="submit" class="primary">기록 저장하기</button>
+        </footer>
+      </form>
+    </dialog>
+    <dialog id="review">
+      <header class="dialog-head">
+        <div>
+          <p class="eyebrow">BEFORE YOU SAVE</p>
+          <h2>수정 전후 확인</h2>
+        </div>
+        <button data-close="review" aria-label="닫기">×</button>
+      </header>
+      <div class="dialog-body">
+        <p class="muted">아래 변경사항이 팀 전체에 공유됩니다.</p>
+        <div id="diffList"></div>
+        <p id="saveError" class="error" role="alert"></p>
+      </div>
+      <footer class="dialog-foot">
+        <button data-close="review">돌아가기</button
+        ><button id="confirmSave" class="primary">확인하고 저장</button>
+      </footer>
+    </dialog>
+    <dialog id="reauth">
+      <form id="reauthForm">
+        <header class="dialog-head">
+          <h2>비밀번호를 다시 확인해 주세요</h2>
+        </header>
+        <div class="dialog-body">
+          <p>
+            작성 중인 내용은 그대로 유지됩니다. 로그인 확인 후 저장을 다시 눌러
+            주세요.
+          </p>
+          <label
+            >공용 비밀번호<input
+              id="reauthPassword"
+              type="password"
+              required
+              maxlength="200"
+              autocomplete="current-password"
+          /></label>
+          <p id="reauthError" class="error" role="alert"></p>
+        </div>
+        <footer class="dialog-foot">
+          <button type="button" data-close="reauth">취소</button
+          ><button class="primary">다시 로그인</button>
+        </footer>
+      </form>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="/app.mjs?v=4"></script>
+  </body>
+</html>

@@ -4,7 +4,13 @@
 
 **Cloudflare Workers가 홈페이지와 로그인·저장을 처리하고, 기존 비공개 GitHub 저장소에 팀 기록을 보관합니다.**
 
-방문자는 공용 비밀번호 한 칸만 입력합니다. GitHub 계정이나 토큰을 준비할 필요가 없습니다. GitHub 연결 토큰은 서버에만 있으며, 프론트엔드에 평문·암호문 형태로 전달하지 않습니다.
+방문자는 공용 비밀번호 한 칸으로 로그인하고, 댓글·투표 등에 사용할 활동 프로필을 선택합니다. 선택 이름은 본인 인증이 아닙니다. GitHub 계정이나 토큰을 준비할 필요가 없습니다. GitHub 연결 토큰은 서버에만 있으며, 프론트엔드에 평문·암호문 형태로 전달하지 않습니다.
+
+## Edition 04 확장 기능
+
+[38개 기능과 조직도 사용 안내](확장기능-안내.md)를 참고하세요. 직함·조직도, 프로필 확장, 수정 전후 비교, 휴지통, 활동 내역, 공지, 임무, 달력, 투표, 도감·사건·세계관 기록을 추가했습니다. **직함은 표시용이며 권한 분리는 하지 않습니다.**
+
+기록 저장은 **기록 저장하기 → 수정 전후 확인 → 확인하고 저장**입니다. 공감·투표·공지 확인·체크 항목은 해당 버튼으로 바로 저장합니다.
 
 ## 현재 구성
 
@@ -99,8 +105,8 @@ Cloudflare **My Profile → API Tokens → Create Token**으로 이동합니다.
 워크플로는 다음을 수행합니다.
 
 1. Node.js 22와 고정된 Wrangler 설치
-2. 서버 보안·기능 테스트 및 공개 파일 검사
-3. 입력한 GitHub 토큰의 비공개 저장소 접근 확인
+2. 서버 보안·확장 스키마·마이그레이션 테스트, 공개 파일 검사, 가상 기록으로 전체 브라우저 통합 테스트
+3. 입력한 GitHub 토큰의 비공개 저장소 접근·현재 기록 호환성 확인, 원본을 같은 비공개 저장소에 백업 (현재 JSON 수정 없음)
 4. 세션 서명용 비밀 값 자동 생성
 5. 비밀 값과 Worker·홈페이지를 함께 배포
 6. 실제 홈페이지·로그인·쿠키·세션·비공개 기록 읽기를 점검 (운영 기록 수정 없음)
@@ -147,7 +153,7 @@ https://theme-sa.<계정의-workers-하위도메인>.workers.dev
 - 세션이 만료된 상태에서 저장하면 초안을 유지한 채 비밀번호 재확인
 - Galaxy S22 기준 360px 세로 화면, 한 칸 카드와 읽기 쉬운 입력창
 
-**입력만 하면 저장되지 않습니다. `GitHub에 저장`을 누르고 성공 알림을 확인하세요.**
+**입력만 하면 저장되지 않습니다. `기록 저장하기`을 누르고 성공 알림을 확인하세요.**
 
 ## 로그인·보안 동작
 
@@ -190,8 +196,11 @@ https://theme-sa.<계정의-workers-하위도메인>.workers.dev
 ```text
 worker/index.mjs                # 비밀번호·쿠키·보안·GitHub API 중계
 worker/worker.test.mjs          # 서버 테스트, 가상 자격증명만 사용
-site/index.html                # S22 반응형 화면 + 같은 출처 /api 호출
-site/config.js                 # 공개 UI 옵션만
+site/index.html                # 로그인·기록실 기본 화면
+site/app.mjs / site/app.css     # 38개 기능과 S22 반응형 UI
+site/model.mjs                 # 브라우저·Worker 공통 v2 스키마
+site/catalog.mjs               # 기록 종류별 입력 양식
+tools/qa/                      # 가상 GitHub를 사용하는 브라우저 통합 테스트
 site/.assetsignore             # 비밀 파일·옛 vault 배포 제외
 wrangler.jsonc                 # Worker, 정적 자산, 요청 제한, 저장소 좌표
 package.json / package-lock.json
@@ -214,7 +223,9 @@ npx wrangler deploy --dry-run
 
 운영 쿠키는 HTTPS용입니다. 배포된 `workers.dev` 또는 사용자 지정 HTTPS 도메인에서 사용하세요.
 
-`index.html`의 인라인 JavaScript를 수정하면 CSP 해시도 갱신해야 합니다. HTML·CSS만 바꾸거나 공개 UI 설정만 변경할 때는 스크립트 해시가 바뀌지 않습니다.
+화면 코드는 외부 ES 모듈이며 CSP의 `script-src self`로 같은 출처 모듈만 실행합니다. 인라인 스크립트와 이벤트 핸들러를 추가하지 마세요. 변경 후 `npm run check:client`를 실행하세요.
+
+브라우저 통합 테스트: `npx playwright install --with-deps chromium` 후 `npm run test:browser`. 테스트 서버는 자동으로 시작·종료되며 가상 기록만 사용합니다. 스크린샷은 `.cache/qa`에 생성됩니다.
 
 ## 검증 상태
 
@@ -233,6 +244,7 @@ npx wrangler deploy --dry-run
 
 ## 자주 막히는 부분
 
+- **업데이트 후 저장 거절(426):** 예전 화면의 덮어쓰기를 방지합니다. 입력을 복사해 두고 새로고침·재로그인하세요.
 - **Actions 설정 오류:** Secrets 3개와 Account ID Variable 1개가 있는지 확인합니다.
 - **Cloudflare 인증 오류:** Cloudflare 토큰의 대상 계정·만료·Workers 배포 권한을 확인합니다. GitHub 토큰과 혼동하지 마세요.
 - **Cloudflare 서버 준비 안 됨:** Worker의 SITE_PASSWORD, DATA_REPO_TOKEN, SESSION_SECRET을 확인합니다. 정상 CI 배포에서는 함께 등록됩니다.

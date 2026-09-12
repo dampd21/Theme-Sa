@@ -40,6 +40,10 @@ jobs:
         run: |
           npm test
           npm run check:client
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify all extension screens with synthetic records
+        run: npm run test:browser
       - name: Prepare and deploy Worker with private server secrets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

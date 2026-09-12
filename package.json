@@ -1,14 +1,20 @@
 {
   "name": "theme-sa-cloudflare",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "node --test worker/worker.test.mjs",
+    "test": "node --test worker/*.test.mjs",
     "check:client": "node tools/check-client.mjs",
     "dev": "wrangler dev --ip 0.0.0.0 --port 3000",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test:browser": "node tools/qa/browser.cjs"
   },
-  "devDependencies": { "wrangler": "4.131.1" }
+  "devDependencies": {
+    "wrangler": "4.131.1",
+    "playwright": "1.63.0"
+  }
 }
