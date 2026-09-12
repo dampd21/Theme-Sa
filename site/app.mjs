@@ -1,3 +1,4 @@
+import { createTrainingUI } from "./training-ui.mjs";
 import {
   normalize,
   emptyState,
@@ -58,6 +59,18 @@ let state = emptyState(),
   toastTimer,
   epoch = 0;
 const sessionKey = "theme-sa-activity-profile";
+const trainingUI = createTrainingUI({
+  api,
+  getState: () => state,
+  getActor: () => actor,
+  esc,
+  toast,
+  requireActor,
+  needLogin,
+  refreshView: () => {
+    if (logged && !busy && !pending && !dirty()) render();
+  },
+});
 const person = (id) =>
   state.members.find((m) => m.id === id)?.name ||
   state.trash.find((t) => t.id === id)?.member.name ||
@@ -100,7 +113,8 @@ function saving(on) {
 function dirty() {
   return (
     ($("editor").open && signature() !== editorBaseline) ||
-    !!$("commentText")?.value.trim()
+    !!$("commentText")?.value.trim() ||
+    trainingUI.isActive()
   );
 }
 function signature() {
@@ -248,6 +262,7 @@ $("logoutButton").onclick = async () => {
     await api("logout", "POST", {});
     epoch++;
     logged = false;
+    trainingUI.reset();
     state = emptyState();
     sha = null;
     pending = null;
@@ -299,7 +314,10 @@ const navSections = [
   [
     "WORKSPACE",
     [
+      ["dashboard", "대시보드", "◈"],
       ["members", "팀원 기록실", "◫"],
+      ["training", "퇴마 훈련소", "⚔"],
+      ["rankings", "훈련 랭킹", "♛"],
       ["organization", "직함 · 조직도", "⌘"],
       ["activity", "최근 활동", "◷"],
       ["trash", "팀원 휴지통", "♲"],
@@ -331,7 +349,11 @@ const navSections = [
 ];
 function route() {
   const [key, id] = location.hash.slice(1).split("/");
-  return { key: key || "members", id: id ? decodeURIComponent(id) : null };
+  let decoded = null;
+  try {
+    decoded = id ? decodeURIComponent(id) : null;
+  } catch {}
+  return { key: key || "dashboard", id: decoded };
 }
 function render() {
   if (!logged) return;
@@ -367,7 +389,10 @@ function render() {
     )
     .join("");
   saving(busy);
-  if (r.key === "members") renderMembers();
+  if (r.key === "dashboard") trainingUI.renderDashboard();
+  else if (r.key === "training") trainingUI.renderTraining(r.id);
+  else if (r.key === "rankings") trainingUI.renderRanks(r.id);
+  else if (r.key === "members") renderMembers();
   else if (r.key === "member") renderMember(r.id);
   else if (r.key === "organization") renderOrg();
   else if (r.key === "activity") renderActivity();
@@ -397,6 +422,7 @@ window.addEventListener("hashchange", () => {
     history.replaceState(null, "", lastHash || "#members");
     return;
   }
+  if (trainingUI.isActive()) trainingUI.cancel(false);
   if ($("editor").open) closeDialog("editor", true);
   lastHash = location.hash;
   $("sidebar").classList.remove("open");
@@ -408,6 +434,11 @@ window.addEventListener("hashchange", () => {
 $("refreshButton").onclick = () => refresh(false);
 async function refresh(silent) {
   if (!logged || busy) return;
+  if (trainingUI.isActive()) {
+    if (silent) return;
+    if (!confirm("진행 중인 게임을 중단하고 최신 기록을 불러올까요?")) return;
+    trainingUI.cancel(false);
+  }
   if (
     silent &&
     (document.hidden ||
@@ -424,6 +455,7 @@ async function refresh(silent) {
     )
   )
     return;
+  trainingUI.load(!silent);
   const currentEpoch = epoch,
     revision = sha;
   try {
@@ -957,6 +989,8 @@ function renderMember(id) {
         .slice(-20)
         .reverse(),
     )}</section></div></div>`;
+  $("view").insertAdjacentHTML("beforeend", trainingUI.profilePanel(id));
+  trainingUI.wireReload();
   $("detailEdit").onclick = () => editMember(id);
   $("detailCopy").onclick = () => editMember(id, true);
   $("detailDelete").onclick = () => {
@@ -1261,12 +1295,10 @@ function editRecord(key, id = null) {
         else if (type === "member") saved[name] = fd.get(name) || null;
         else if (type === "check") saved[name] = fd.has(name);
         else if (type === "assignments")
-          saved.assignments = fd
-            .getAll("participants")
-            .map((memberId) => ({
-              memberId,
-              role: String(fd.get("assignment-" + memberId) || "").trim(),
-            }));
+          saved.assignments = fd.getAll("participants").map((memberId) => ({
+            memberId,
+            role: String(fd.get("assignment-" + memberId) || "").trim(),
+          }));
         else if (type === "options" || type === "items") {
           const lines = String(fd.get(name) || "")
             .split("\n")
@@ -1639,7 +1671,7 @@ function renderGuide() {
       "사용 안내 · 백업",
       "일반 저장은 입력창의 ‘기록 저장하기’를 사용하세요. 파일 백업은 선택 사항입니다.",
     ) +
-    `<section class="panel"><h2>기록 저장 순서</h2><div class="list-row"><b>01 · 내용을 작성해요</b><p>팀원 추가 또는 기록 수정에서 정보를 입력합니다. 입력만으로는 저장되지 않습니다.</p></div><div class="list-row"><b>02 · 수정 전후를 확인해요</b><p>‘기록 저장하기’를 누르면 바뀐 내용이 표시됩니다. ‘확인하고 저장’을 누르면 팀 전체에 반영됩니다.</p></div><div class="list-row"><b>03 · 저장 완료를 확인해요</b><p>상단에 ‘저장 완료 · 시간’이 표시됩니다. 단순히 화면을 닫거나 파일을 내려받는 것은 공동 기록 저장이 아닙니다.</p></div><div class="list-row"><b>04 · 작성 중에는 새로고침하지 않아요</b><p>입력은 화면 메모리에 있습니다. 로그인이 만료되면 입력을 유지한 채 다시 로그인할 수 있어요. 기기 종료나 강제 새로고침은 입력을 잃게 할 수 있습니다.</p></div><div class="list-row"><b>05 · 충돌 시 먼저 확인해요</b><p>다른 사람이 먼저 저장하면 덮어쓰지 않고 중단합니다. 내 초안을 복사해 두고 ‘최신 기록’으로 불러온 후 필요한 부분을 다시 적용하세요.</p></div><div class="callout">활동 프로필은 이름 선택일 뿐 본인 인증이 아닙니다. 부팀장·치료사 등 직함도 접근 권한과 무관합니다. 같은 비밀번호를 아는 사람은 전체 기록을 편집할 수 있어요.</div><h2>선택 사항 · 파일 백업</h2><p class="hint">백업에는 개인정보가 포함될 수 있어요. 공개하지 마세요. 전체 복원은 팀의 현재 기록을 교체합니다.</p><div class="head-actions" style="margin-top:15px"><button id="exportArchive">기록 사본 내려받기</button><button id="importArchive">백업 파일 복원</button><input type="file" id="backupInput" accept=".json,application/json" hidden></div><div class="callout">v1 기록은 읽을 때 확장 형식으로 호환됩니다. 첫 확장 저장 전에 원본 파일을 같은 비공개 GitHub 저장소에 별도 보관합니다. 휴지통 제거는 GitHub 이력·백업의 삭제가 아닙니다.</div><h2>보관 한도</h2><p class="hint">현재 팀원 300명, 직함 50개, 사용자 항목 30개, 각 기록 종류 200개, 기록별 댓글 100개, 최근 활동 300건, 전체 JSON 900KB입니다. 이미지 업로드 대신 제공 아바타를 사용합니다. 사진·대용량 문서·실시간 채팅을 위한 저장소는 아닙니다.</p></section>`;
+    `<section class="panel"><h2>기록 저장 순서</h2><div class="list-row"><b>01 · 내용을 작성해요</b><p>팀원 추가 또는 기록 수정에서 정보를 입력합니다. 입력만으로는 저장되지 않습니다.</p></div><div class="list-row"><b>02 · 수정 전후를 확인해요</b><p>‘기록 저장하기’를 누르면 바뀐 내용이 표시됩니다. ‘확인하고 저장’을 누르면 팀 전체에 반영됩니다.</p></div><div class="list-row"><b>03 · 저장 완료를 확인해요</b><p>상단에 ‘저장 완료 · 시간’이 표시됩니다. 단순히 화면을 닫거나 파일을 내려받는 것은 공동 기록 저장이 아닙니다.</p></div><div class="list-row"><b>04 · 작성 중에는 새로고침하지 않아요</b><p>입력은 화면 메모리에 있습니다. 로그인이 만료되면 입력을 유지한 채 다시 로그인할 수 있어요. 기기 종료나 강제 새로고침은 입력을 잃게 할 수 있습니다.</p></div><div class="list-row"><b>05 · 충돌 시 먼저 확인해요</b><p>다른 사람이 먼저 저장하면 덮어쓰지 않고 중단합니다. 내 초안을 복사해 두고 ‘최신 기록’으로 불러온 후 필요한 부분을 다시 적용하세요.</p></div><div class="callout">활동 프로필은 이름 선택일 뿐 본인 인증이 아닙니다. 부팀장·치료사 등 직함도 접근 권한과 무관합니다. 같은 비밀번호를 아는 사람은 전체 기록을 편집할 수 있어요.</div><h2>훈련소 사용하기</h2><p class="hint">상단 활동 프로필을 선택하고 <a href="#training">퇴마 훈련소</a>에서 게임을 시작하세요. 여섯 훈련 능력치는 기존 설정 능력치와 별개로 0부터 30까지 성장합니다. 게임 결과는 종료 후 자동 저장됩니다. 첫 5회 기본 XP, 다음 5회 절반, 이후 기록 도전만 가능합니다. 생존전은 공정/성장 모드로 나뉘며 XP는 주지 않습니다. 프로필 상세에서 게임별 랭크를, <a href="#rankings">훈련 랭킹</a>에서 주간·역대·조작별 순위를 확인하세요. 공동 봉인은 서로 다른 세 프로필이 완성하면 보상을 함께 받습니다.</p><div class="callout">게임 중 탭 이동·화면 끄기는 도전을 중단합니다. 저장 실패 시 같은 결과로 다시 저장하세요. 강제 새로고침이나 배포 후에는 미저장 결과를 잃을 수 있어요. 훈련은 친구 사이의 신뢰 기반 기록이며 본인 인증·완벽한 부정행위 방지는 제공하지 않습니다.</div><h2>선택 사항 · 파일 백업</h2><p class="hint">백업에는 개인정보가 포함될 수 있어요. 공개하지 마세요. 전체 복원은 팀의 현재 기록을 교체합니다. 이 버튼의 백업·복원에는 별도 훈련 XP·랭킹이 포함되지 않습니다. 훈련은 관리자가 비공개 GitHub의 별도 파일과 이력으로 관리합니다.</p><div class="head-actions" style="margin-top:15px"><button id="exportArchive">기록 사본 내려받기</button><button id="importArchive">백업 파일 복원</button><input type="file" id="backupInput" accept=".json,application/json" hidden></div><div class="callout">v1 기록은 읽을 때 확장 형식으로 호환됩니다. 첫 확장 저장 전에 원본 파일을 같은 비공개 GitHub 저장소에 별도 보관합니다. 휴지통 제거는 GitHub 이력·백업의 삭제가 아닙니다.</div><h2>보관 한도</h2><p class="hint">현재 팀원 300명, 직함 50개, 사용자 항목 30개, 각 기록 종류 200개, 기록별 댓글 100개, 최근 활동 300건, 전체 JSON 900KB입니다. 이미지 업로드 대신 제공 아바타를 사용합니다. 사진·대용량 문서·실시간 채팅을 위한 저장소는 아닙니다.</p></section>`;
   $("exportArchive").onclick = () => {
     if (
       !confirm(

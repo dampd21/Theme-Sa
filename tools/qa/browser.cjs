@@ -79,6 +79,7 @@ const base = "http://127.0.0.1:3001";
   async function data() {
     return page.evaluate(() => fetch("/api/archive").then((r) => r.json()));
   }
+  await nav("members");
   await page.locator("#addMember").click();
   await page.locator("[name=name]").fill("가상 팀장");
   await page.locator("[name=codeName]").fill("월영");

@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { normalize } from "../site/model.mjs";
+import { validateTrainingStore } from "../worker/training.mjs";
 
 async function main() {
   const required = [
@@ -193,6 +194,55 @@ async function main() {
       );
     console.log(
       "Existing archive is compatible. Exact private backup verified; current team data was not edited.",
+    );
+  }
+  // Training records are independent: never initialize or reset them during deployment.
+  const trainingPath = contentPath + ".training.json";
+  const trainingResponse = await git(
+    trainingPath + "?ref=" + encodeURIComponent(branch),
+  );
+  if (trainingResponse.status === 404)
+    console.log(
+      "No training file yet; first successful result will create it. No training data was initialized.",
+    );
+  else {
+    if (!trainingResponse.ok)
+      throw new Error("Private training read failed; no deployment made.");
+    const file = await trainingResponse.json();
+    try {
+      if (
+        file.type !== "file" ||
+        file.encoding !== "base64" ||
+        file.size > 900000 ||
+        !/^[a-f0-9]{40,64}$/.test(file.sha || "")
+      )
+        throw new Error();
+      const bytes = Buffer.from(file.content, "base64");
+      if (bytes.length > 900000) throw new Error();
+      validateTrainingStore(
+        JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
+      );
+    } catch {
+      throw new Error(
+        "Training schema compatibility check failed. Existing training data is unchanged; no deployment made.",
+      );
+    }
+    const backup = trainingPath + ".before-update-" + file.sha + ".json";
+    const existing = await git(backup + "?ref=" + encodeURIComponent(branch));
+    if (existing.status === 404) {
+      const saved = await git(backup, "PUT", {
+        message: "Back up private training before deployment",
+        content: file.content.replace(/\s/g, ""),
+        branch,
+      });
+      if (!saved.ok || (await saved.json()).content?.sha !== file.sha)
+        throw new Error(
+          "Exact private training backup failed; no deployment made.",
+        );
+    } else if (!existing.ok || (await existing.json()).sha !== file.sha)
+      throw new Error("Private training backup mismatch; no deployment made.");
+    console.log(
+      "Existing training schema and exact private backup verified. Training records were not edited.",
     );
   }
   await writeFile(

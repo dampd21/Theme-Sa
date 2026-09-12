@@ -1,3 +1,4 @@
+import { trainingRoute } from "./training.mjs";
 import { normalize, differences, purgeExpired } from "../site/model.mjs";
 const COOKIE = "__Host-theme_sa";
 const LIMIT = 900000;
@@ -378,8 +379,8 @@ async function privateRepo(env) {
     );
   return c;
 }
-async function getArchive(env, internal = false) {
-  const c = await privateRepo(env),
+async function getArchive(env, internal = false, verifiedConnection = null) {
+  const c = verifiedConnection || (await privateRepo(env)),
     file = await github(
       filePath(c) + "?ref=" + encodeURIComponent(c.branch) + "&_=" + Date.now(),
       env,
@@ -633,15 +634,30 @@ async function apiRoute(request, env) {
       "로그인 시간이 만료됐어요. 비밀번호를 다시 입력해 주세요.",
       { "Set-Cookie": cookie("", 0) },
     );
-  if (path !== "/api/archive")
+  const trainingPath =
+    path === "/api/training" || path.startsWith("/api/training/");
+  if (path !== "/api/archive" && !trainingPath)
     fail(404, "NOT_FOUND", "요청한 기능을 찾을 수 없어요.");
-  if (!["GET", "PUT"].includes(method))
+  if (!(trainingPath ? ["GET", "POST"] : ["GET", "PUT"]).includes(method))
     fail(405, "METHOD", "지원하지 않는 요청이에요.");
   if (!env.API_RATE_LIMITER?.limit)
     fail(503, "RATE_LIMIT_SETUP", "서버 요청 보호 설정이 준비되지 않았어요.");
   if (!(await env.API_RATE_LIMITER.limit({ key: session.jti })).success)
     fail(429, "API_RATE_LIMIT", "요청이 많아요. 잠시 후 다시 시도해 주세요.", {
       "Retry-After": "60",
+    });
+  if (trainingPath)
+    return trainingRoute(request, env, session, {
+      fail,
+      json,
+      github,
+      privateRepo,
+      filePath,
+      getArchive,
+      readJson,
+      signingKey,
+      base64url,
+      unbase64url,
     });
   return json(
     method === "GET" ? await getArchive(env) : await putArchive(request, env),

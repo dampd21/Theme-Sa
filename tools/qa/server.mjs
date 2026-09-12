@@ -11,6 +11,10 @@ const f = fixture({
   updatedAt: null,
 });
 globalThis.fetch = f.fetcher;
+const realNow = Date.now;
+let testOffset = 0;
+if (process.env.THEME_SA_GAME_QA === "1")
+  Date.now = () => realNow() + testOffset;
 const site = new URL("../../site/", import.meta.url).pathname.replace(
   /\/$/,
   "",
@@ -45,6 +49,19 @@ http
       const chunks = [];
       for await (const c of req) chunks.push(c);
       const body = Buffer.concat(chunks);
+      if (
+        process.env.THEME_SA_GAME_QA === "1" &&
+        req.url === "/_qa/advance" &&
+        req.method === "POST"
+      ) {
+        const delta = JSON.parse(body.toString()).delta;
+        if (!Number.isInteger(delta) || delta < 0 || delta > 240000)
+          throw new Error("test clock");
+        testOffset += delta;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end("{}");
+        return;
+      }
       const r = new Request("http://" + req.headers.host + req.url, {
         method: req.method,
         headers: req.headers,
