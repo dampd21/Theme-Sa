@@ -156,10 +156,11 @@ async function main() {
     throw new Error("Anonymous training access did not return 401.");
   if ((await request("/api/room")).response.status !== 401)
     throw new Error("Anonymous room access was not denied.");
-  let cookie = "";
+  let cookie = "",
+    login;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt) await delay(15000);
-    const login = await request("/api/login", "POST", {
+    login = await request("/api/login", "POST", {
       password: process.env.SITE_PASSWORD,
     });
     if (!login.response.ok || !login.json.authenticated)
@@ -168,7 +169,10 @@ async function main() {
           login.response.status +
           ").",
       );
-    const setCookie = login.response.headers.get("Set-Cookie") || "";
+    const setCookie =
+      login.response.headers
+        .getSetCookie()
+        .find((value) => value.startsWith("__Host-theme_sa=")) || "";
     for (const expected of [
       "__Host-theme_sa=",
       "HttpOnly",

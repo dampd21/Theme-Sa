@@ -11,7 +11,7 @@
     "check:client": "node tools/check-client.mjs",
     "dev": "wrangler dev --ip 0.0.0.0 --port 3000",
     "deploy": "wrangler deploy",
-    "test:browser": "node tools/qa/browser.cjs && node tools/qa/games.cjs && node tools/qa/room.cjs"
+    "test:browser": "node tools/qa/browser.cjs && node tools/qa/games.cjs && node tools/qa/room.cjs && node tools/qa/smoke-script.mjs"
   },
   "devDependencies": {
     "wrangler": "4.131.1",
