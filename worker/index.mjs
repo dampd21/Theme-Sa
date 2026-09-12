@@ -100,7 +100,9 @@ const repoPath = c => '/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIC
 const filePath = c => repoPath(c) + '/contents/' + c.path.split('/').map(encodeURIComponent).join('/');
 async function github(path, env, method = 'GET', body) {
   let response;
-  try { response = await fetch('https://api.github.com' + path, { method, headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + env.DATA_REPO_TOKEN, 'User-Agent': 'Theme-Sa-Cloudflare', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(20000) }); } catch { fail(502, 'UPSTREAM_NETWORK', 'GitHub 연결이 지연되고 있어요. 저장 요청이었다면 최신 기록을 확인한 뒤 다시 시도해 주세요.'); }
+  try { response = await fetch('https://api.github.com' + path, { method, headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + env.DATA_REPO_TOKEN, 'User-Agent': 'Theme-Sa-Cloudflare', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store', redirect: 'manual', signal: AbortSignal.timeout(20000) }); } catch { fail(502, 'UPSTREAM_NETWORK', 'GitHub 연결이 지연되고 있어요. 저장 요청이었다면 최신 기록을 확인한 뒤 다시 시도해 주세요.'); }
+  // Workers at this compatibility date do not support redirect: 'error'. Never forward the token through redirects.
+  if (response.status >= 300 && response.status < 400) fail(502, 'UPSTREAM_REDIRECT', 'GitHub 저장소 주소가 변경됐어요. 관리자에게 연결 설정 확인을 요청해 주세요.');
   if (response.status === 429 || response.headers.get('x-ratelimit-remaining') === '0') fail(429, 'GITHUB_RATE_LIMIT', 'GitHub 요청 제한에 도달했어요. 잠시 후 다시 시도해 주세요.', { 'Retry-After': '60' });
   if (response.status === 401 || response.status === 403) fail(503, 'GITHUB_PERMISSION', '관리자가 GitHub 연결키의 만료·권한과 저장소 규칙을 확인해야 합니다.');
   if (response.status === 409 || response.status === 422) fail(409, 'CONFLICT', '다른 사람이 먼저 저장했거나 저장소 규칙에 따라 변경이 거절됐어요. 최신 기록을 확인해 주세요.');

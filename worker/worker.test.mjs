@@ -18,12 +18,13 @@ async function login(env) {
   assert.equal(r.status, 200); return sessionCookie(r);
 }
 function githubMock(env) {
-  let state = blank(), sha = 'a'.repeat(40), exists = true, privateRepo = true, sequence = 1, readOnly = false, corrupt = false;
+  let state = blank(), sha = 'a'.repeat(40), exists = true, privateRepo = true, sequence = 1, readOnly = false, corrupt = false, redirected = false;
   const calls = [];
   const fetcher = async (url, options = {}) => {
     const u = new URL(url); calls.push({ url: u, options });
-    assert.equal(u.hostname, 'api.github.com'); assert.equal(options.headers.Authorization, 'Bearer ' + env.DATA_REPO_TOKEN);
+    assert.equal(options.redirect, 'manual'); assert.equal(u.hostname, 'api.github.com'); assert.equal(options.headers.Authorization, 'Bearer ' + env.DATA_REPO_TOKEN);
     const response = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+    if (redirected) return new Response(null, { status: 302, headers: { Location: 'https://untrusted.test/' } });
     if (u.pathname === '/repos/test-owner/private-data') return response(200, { private: privateRepo, full_name: 'test-owner/private-data' });
     if (u.pathname.includes('/branches/')) return response(200, { name: 'main' });
     assert.equal(u.pathname, '/repos/test-owner/private-data/contents/data/team.json');
@@ -37,7 +38,7 @@ function githubMock(env) {
     if (!exists) return response(404, {});
     return response(200, { type: 'file', encoding: 'base64', sha, size: Buffer.byteLength(JSON.stringify(state)), content: Buffer.from(corrupt ? 'not json' : JSON.stringify(state)).toString('base64') });
   };
-  return { fetcher, calls, get state() { return structuredClone(state); }, get sha() { return sha; }, setExists(v) { exists = v; }, setPrivate(v) { privateRepo = v; }, setReadOnly(v) { readOnly = v; }, setCorrupt(v) { corrupt = v; } };
+  return { fetcher, calls, get state() { return structuredClone(state); }, get sha() { return sha; }, setExists(v) { exists = v; }, setPrivate(v) { privateRepo = v; }, setReadOnly(v) { readOnly = v; }, setCorrupt(v) { corrupt = v; }, setRedirected(v) { redirected = v; } };
 }
 
 test('server session, private archive, validation and credential boundary', async t => {
@@ -81,6 +82,7 @@ test('server session, private archive, validation and credential boundary', asyn
   assert.equal((await worker.fetch(request('/api/login', { method: 'POST', body: 'x', headers: { 'Content-Type': 'text/plain' } }), env)).status, 415);
   mock.setPrivate(false); assert.equal((await worker.fetch(request('/api/archive', { cookie }), env)).status, 503); mock.setPrivate(true);
   mock.setReadOnly(true); assert.equal((await worker.fetch(request('/api/archive', { method: 'PUT', cookie, body: { state: next, sha: mock.sha } }), env)).status, 503); mock.setReadOnly(false);
+  mock.setRedirected(true); const redirect = await worker.fetch(request('/api/archive', { cookie }), env); assert.equal(redirect.status, 502); assert.equal((await redirect.json()).error.code, 'UPSTREAM_REDIRECT'); mock.setRedirected(false);
   mock.setCorrupt(true); assert.equal((await worker.fetch(request('/api/archive', { cookie }), env)).status, 502); mock.setCorrupt(false);
   mock.setExists(false); const missing = await worker.fetch(request('/api/archive', { cookie }), env); assert.equal(missing.status, 404); assert.equal((await missing.json()).error.code, 'ARCHIVE_NOT_INITIALIZED');
   const init = await worker.fetch(request('/api/archive', { method: 'PUT', cookie, body: { state: blank(), sha: null } }), env); assert.equal(init.status, 200);

@@ -32,7 +32,7 @@ async function main() {
     if (!session.response.ok || !session.json.authenticated) throw new Error('Live session restoration check failed.');
     const archive = await request('/api/archive', 'GET', undefined, cookie);
     if (archive.response.status === 404 && archive.json.error?.code === 'ARCHIVE_NOT_INITIALIZED') archiveStatus = 'not initialized; create the first archive in the UI';
-    else if (!archive.response.ok || archive.json.state?.version !== 1 || !Array.isArray(archive.json.state?.members)) throw new Error('Live private archive read failed (HTTP ' + archive.response.status + ').');
+    else if (!archive.response.ok || archive.json.state?.version !== 1 || !Array.isArray(archive.json.state?.members)) throw new Error('Live private archive read failed (HTTP ' + archive.response.status + ', ' + (/^[A-Z_]{1,60}$/.test(archive.json.error?.code || '') ? archive.json.error.code : 'unexpected response') + ').');
     for (const payload of [login.json, session.json, archive.json]) if (process.env.DATA_REPO_TOKEN && JSON.stringify(payload).includes(process.env.DATA_REPO_TOKEN)) throw new Error('Server credential unexpectedly appeared in an API response.');
     // Read-only smoke check: never create, edit or delete production team records in CI.
   } finally {
