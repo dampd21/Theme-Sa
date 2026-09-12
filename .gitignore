@@ -1,0 +1,10 @@
+site/vault.json
+node_modules/
+.env
+.env.*
+*.key
+*.pem
+data/
+*-팀기록-*.json
+*-미저장초안-*.json
+.DS_Store

@@ -62,6 +62,13 @@ jobs:
               + json.dumps(settings, ensure_ascii=True, indent=2)
               + ');\n', encoding='utf-8')
           PY
+      - name: Test shared-login encryption
+        run: node tools/test-vault.mjs
+      - name: Build encrypted shared-password login
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+        run: node tools/build-vault.mjs
       - name: Verify public website artifact
         run: |
           python3 - <<'PYTHON'
@@ -76,6 +83,7 @@ jobs:
                   content = file.read_text(encoding='utf-8')
                   assert not re.search(r'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}', content), 'Credential-shaped value found in public artifact'
           assert Path('site/config.js').exists()
+          assert Path('site/vault.json').exists(), 'Shared-login vault was not generated'
           print('Website path, CSP and public credential checks passed.')
           PYTHON
       - name: Upload artifact
