@@ -1,5 +1,7 @@
 # Theme-Sa · Cloudflare 비밀 기록실
 
+**운영 홈페이지: https://theme-sa.dampd21.workers.dev/**
+
 **Cloudflare Workers가 홈페이지와 로그인·저장을 처리하고, 기존 비공개 GitHub 저장소에 팀 기록을 보관합니다.**
 
 방문자는 공용 비밀번호 한 칸만 입력합니다. GitHub 계정이나 토큰을 준비할 필요가 없습니다. GitHub 연결 토큰은 서버에만 있으며, 프론트엔드에 평문·암호문 형태로 전달하지 않습니다.
@@ -101,7 +103,8 @@ Cloudflare **My Profile → API Tokens → Create Token**으로 이동합니다.
 3. 입력한 GitHub 토큰의 비공개 저장소 접근 확인
 4. 세션 서명용 비밀 값 자동 생성
 5. 비밀 값과 Worker·홈페이지를 함께 배포
-6. 러너 임시 비밀 파일 삭제
+6. 실제 홈페이지·로그인·쿠키·세션·비공개 기록 읽기를 점검 (운영 기록 수정 없음)
+7. 러너 임시 비밀 파일 삭제
 
 세션 서명 키는 자동 생성하므로 따로 등록할 필요가 없습니다. 새 배포에서는 기존 로그인 세션이 만료되어 다시 비밀번호를 입력합니다.
 
@@ -195,6 +198,7 @@ package.json / package-lock.json
 .github/workflows/cloudflare.yml
 tools/prepare-cloudflare.mjs    # 비밀 값은 러너 임시 경로에만 생성
 tools/check-client.mjs          # 프론트에 연결키·vault가 없는지 검사
+tools/smoke-cloudflare.mjs      # 운영 로그인·세션·읽기 점검, 운영 데이터 쓰기 없음
 ```
 
 Node.js 22 이상이 필요합니다.
@@ -219,7 +223,13 @@ npx wrangler deploy --dry-run
 - 브라우저 요청에 GitHub 토큰이 없고 같은 출처 API만 사용하는지 확인
 - Wrangler의 Worker·정적 자산·요청 제한 바인딩 dry-run 확인
 
-**실제 Cloudflare 계정의 배포 자격증명을 설정하기 전에는 운영 배포가 완료된 것이 아닙니다.** 실제 배포 후에는 가상 팀원으로 저장·불러오기를 먼저 확인하세요.
+**2026-09-12 실제 Cloudflare 배포 및 읽기 전용 운영 점검 완료.**
+
+- 배포: [성공한 Actions 실행](https://github.com/dampd21/Theme-Sa/actions/runs/34689672510)
+- 실제 등록 비밀번호 로그인, HttpOnly/Secure 쿠키, 세션 복원, 비로그인 접근 차단, 비공개 기록 읽기 확인
+- 실제 홈페이지의 320/360/384/412/780/1024/1440px 로그인 화면, 잘못된 비밀번호 거절, 같은 출처 요청과 CSP 확인
+- GitHub 연결 요청은 Worker 런타임과 호환되는 manual 리다이렉트를 사용하고, 3xx 응답을 거절해 토큰이 다른 주소로 전달되지 않도록 함
+- 운영 기록은 수정하지 않았습니다. CRUD·충돌·초안 보존은 가상 GitHub를 사용하는 통합 테스트에서 검증했습니다. 첫 운영 저장은 홈페이지에서 확인하세요.
 
 ## 자주 막히는 부분
 
