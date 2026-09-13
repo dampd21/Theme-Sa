@@ -224,6 +224,7 @@ export function createAdventureUI(H) {
               ? `<section class="panel"><h3>어디로 이동할까요?</h3><div class="adv-exits">${exits(
                   r,
                   p.at,
+                  p.gear,
                 )
                   .map((to) =>
                     action(
@@ -244,7 +245,7 @@ export function createAdventureUI(H) {
                   })
                   .join(
                     "",
-                  )}</div><p class="hint">알맞은 준비물은 모루의 상세 힌트를 바로 열어 줍니다.</p></section>`
+                  )}</div><p class="hint">거울은 두 조사 지점을 잇고, 나침반은 거점 지름길을 엽니다. 붉은 실은 해결한 역과 다음 역을 잇습니다. 알맞은 도구로 상세 힌트도 얻을 수 있어요.</p></section>`
               : ""
           }</aside></div>${p && finish ? `<section class="panel adv-finale"><p class="eyebrow">THE WAY HOME</p><h2>어떤 결말을 남길까요?</h2><p>혼자면 즉시 결정됩니다. 공동 원정은 현재 팀에 남아 있는 참여 프로필의 과반수가 같은 결말을 고르면 귀환합니다. 의견은 바꿀 수 있습니다.</p><div class="adv-choices">${c.endings.map(([id, label]) => action("vote", esc(label) + ` <small>${r.votes.filter((v) => v.choice === id).length}표</small>`, `data-choice="${id}"`)).join("")}</div></section>` : ""}`
     }

@@ -305,3 +305,38 @@ test("escalating difficulty has faster threats, shrinking defense windows and me
     90000,
   );
 });
+
+test("preparation unlocks real shortcuts without bypassing locked stations", async (t) => {
+  const h = await harness(t),
+    created = await h.post(
+      h.body("create", {
+        campaign: "train",
+        mode: "solo",
+        gear: ["mirror", "thread", "compass"],
+      }),
+    ),
+    id = created.runId;
+  assert.equal(created.status, 200);
+  await h.act(id, "move", { from: 0, to: 1 });
+  await h.act(id, "move", { from: 1, to: 2 });
+  await h.act(id, "inspect", { from: 2 });
+  await h.act(id, "move", { from: 2, to: 3 });
+  await h.act(id, "inspect", { from: 3 });
+  await h.act(id, "move", { from: 3, to: 0 });
+  assert.equal(
+    (await h.post(h.body("move", { runId: id, from: 0, to: 4 }))).status,
+    409,
+  );
+  await h.act(id, "move", { from: 0, to: 1 });
+  await h.act(id, "solve", { from: 1, answer: "star-ship-bell" });
+  await h.act(id, "move", { from: 1, to: 4 });
+  assert.equal((await h.get()).runs[0].party[0].at, 4);
+  const before = h.f.files.get("data/team.json.adventure.json").content;
+  h.f.setReadOnly(true);
+  assert.notEqual(
+    (await h.post(h.body("note", { runId: id, text: "저장 불가 검증" })))
+      .status,
+    200,
+  );
+  assert.equal(h.f.files.get("data/team.json.adventure.json").content, before);
+});

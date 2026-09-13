@@ -2,11 +2,21 @@
 export const ADVENTURE_VERSION = 1;
 export const GEAR = [
   ["lantern", "🏮", "기억 등불", "흔적을 더 쉽게 읽는 조사 힌트"],
-  ["mirror", "🪞", "손거울", "반사된 문양을 해석하는 힌트"],
+  ["mirror", "🪞", "손거울", "두 조사 지점을 잇는 거울 통로 · 해석 힌트"],
   ["bell", "🔔", "작은 종", "말 없는 존재의 증언 힌트"],
-  ["thread", "🧵", "붉은 실", "연결 순서를 이해하는 힌트"],
+  [
+    "thread",
+    "🧵",
+    "붉은 실",
+    "해결한 역에서 다음 역으로 바로 연결 · 순서 힌트",
+  ],
   ["letter", "✉️", "빈 편지", "인물의 미련을 이해하는 힌트"],
-  ["compass", "🧭", "귀환 나침반", "길과 방향의 힌트"],
+  [
+    "compass",
+    "🧭",
+    "귀환 나침반",
+    "조사 지점에서 출발 거점으로 바로 귀환 · 방향 힌트",
+  ],
 ];
 const puzzle = (id, title, prompt, options, hints) => ({
   id,
@@ -390,16 +400,29 @@ export function nodes(id) {
     ]),
   ];
 }
-export function exits(run, at) {
+export function exits(run, at, gear = []) {
   const ns = nodes(run.campaign),
     n = ns[at];
   if (!n) return [];
   if (n.kind === "hub")
-    return run.solved.length < CASES[run.campaign].stages.length
-      ? [run.solved.length * 3 + 1]
-      : [1];
-  const b = n.stage * 3 + 1;
-  return n.kind === "platform" ? [0, b + 1, b + 2] : [b];
+    return ns
+      .filter((x) => x.kind === "platform" && accessible(run, x.id))
+      .map((x) => x.id);
+  const base = n.stage * 3 + 1,
+    result = n.kind === "platform" ? [0, base + 1, base + 2] : [base];
+  if (n.kind !== "platform") {
+    if (gear.includes("compass")) result.push(0);
+    if (gear.includes("mirror"))
+      result.push(n.kind === "left" ? base + 2 : base + 1);
+  } else if (gear.includes("thread") && rSolvedNext()) result.push(base + 3);
+  function rSolvedNext() {
+    return (
+      run.solved.includes(n.stage) &&
+      Boolean(ns[base + 3]) &&
+      accessible(run, base + 3)
+    );
+  }
+  return [...new Set(result)];
 }
 export function accessible(run, to) {
   const n = nodes(run.campaign)[to];

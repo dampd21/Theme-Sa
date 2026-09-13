@@ -344,7 +344,7 @@ export async function adventureRoute(request, env, session, D) {
         if (b.action === "move") {
           if (
             b.from !== p.at ||
-            !exits(r, p.at).includes(b.to) ||
+            !exits(r, p.at, p.gear).includes(b.to) ||
             !accessible(r, b.to)
           )
             conflict();
