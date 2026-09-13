@@ -1,3 +1,4 @@
+import { worldRoute } from "./world.mjs";
 import { partyRoute } from "./party.mjs";
 import { adventureRoute } from "./adventure.mjs";
 import { roomRoute } from "./room.mjs";
@@ -642,17 +643,19 @@ async function apiRoute(request, env) {
   const roomPath = path === "/api/room";
   const adventurePath = path === "/api/adventure";
   const partyPath = path === "/api/party";
+  const worldPath = path === "/api/world";
   if (
     path !== "/api/archive" &&
     !trainingPath &&
     !roomPath &&
     !adventurePath &&
-    !partyPath
+    !partyPath &&
+    !worldPath
   )
     fail(404, "NOT_FOUND", "요청한 기능을 찾을 수 없어요.");
   if (
     !(
-      trainingPath || roomPath || adventurePath || partyPath
+      trainingPath || roomPath || adventurePath || partyPath || worldPath
         ? ["GET", "POST"]
         : ["GET", "PUT"]
     ).includes(method)
@@ -663,6 +666,16 @@ async function apiRoute(request, env) {
   if (!(await env.API_RATE_LIMITER.limit({ key: session.jti })).success)
     fail(429, "API_RATE_LIMIT", "요청이 많아요. 잠시 후 다시 시도해 주세요.", {
       "Retry-After": "60",
+    });
+  if (worldPath)
+    return worldRoute(request, env, session, {
+      fail,
+      json,
+      github,
+      privateRepo,
+      filePath,
+      getArchive,
+      readJson,
     });
   if (partyPath)
     return partyRoute(request, env, session, {

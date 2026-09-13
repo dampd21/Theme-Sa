@@ -1,3 +1,4 @@
+import { createWorldUI } from "./world-ui.mjs";
 import { createPartyUI } from "./party-ui.mjs";
 import { createAdventureUI } from "./adventure-ui.mjs";
 import { sealSVG } from "./adventure-art.mjs";
@@ -115,6 +116,15 @@ const partyUI = createPartyUI({
   requireActor,
   needLogin,
 });
+const worldUI = createWorldUI({
+  api,
+  getState: () => state,
+  getActor: () => actor,
+  esc,
+  toast,
+  requireActor,
+  needLogin,
+});
 let profileChoice = "";
 function profileGate(force = false) {
   if (!logged || (!force && actor && state.members.some((m) => m.id === actor)))
@@ -205,7 +215,8 @@ function dirty() {
     trainingUI.isActive() ||
     roomUI.isDirty() ||
     adventureUI.isDirty() ||
-    partyUI.isDirty()
+    partyUI.isDirty() ||
+    worldUI.isDirty()
   );
 }
 function signature() {
@@ -344,7 +355,13 @@ function needLogin() {
   $("reauthPassword").focus();
 }
 $("logoutButton").onclick = async () => {
-  if (busy || roomUI.isSaving() || adventureUI.isSaving() || partyUI.isSaving())
+  if (
+    busy ||
+    roomUI.isSaving() ||
+    adventureUI.isSaving() ||
+    partyUI.isSaving() ||
+    worldUI.isSaving()
+  )
     return;
   if (
     (dirty() || pending) &&
@@ -358,6 +375,7 @@ $("logoutButton").onclick = async () => {
     trainingUI.reset();
     roomUI.reset();
     adventureUI.reset();
+    worldUI.reset();
     await partyUI.reset();
     state = emptyState();
     sha = null;
@@ -414,6 +432,7 @@ const navSections = [
       ["members", "팀원 기록실", "◫"],
       ["room", "살아 있는 기록실", "☽"],
       ["adventure", "기록실 너머 · 모험", "🧭"],
+      ["village", "달빛 마을 · 새로운 이야기", "🌌"],
       ["party", "월드컵 · 복불복 놀이방", "🏆"],
       ["training", "퇴마 훈련소", "⚔"],
       ["rankings", "훈련 랭킹", "♛"],
@@ -495,9 +514,13 @@ function render() {
       .querySelector(".dash-hero")
       ?.insertAdjacentHTML(
         "afterend",
-        partyUI.teaser() + adventureUI.teaser() + roomUI.teaser(),
+        worldUI.teaser() +
+          partyUI.teaser() +
+          adventureUI.teaser() +
+          roomUI.teaser(),
       );
   } else if (r.key === "adventure") adventureUI.render();
+  else if (r.key === "village") worldUI.render();
   else if (r.key === "party") partyUI.render(r.id);
   else if (r.key === "room") roomUI.render();
   else if (r.key === "training") trainingUI.renderTraining(r.id);
@@ -524,7 +547,8 @@ window.addEventListener("hashchange", () => {
     busy ||
     roomUI.isSaving() ||
     adventureUI.isSaving() ||
-    partyUI.isSaving()
+    partyUI.isSaving() ||
+    worldUI.isSaving()
   ) {
     history.replaceState(null, "", lastHash || "#members");
     toast("저장 중입니다. 잠시만 기다려 주세요.");
@@ -541,6 +565,7 @@ window.addEventListener("hashchange", () => {
   roomUI.cancel();
   adventureUI.cancel();
   partyUI.cancel();
+  worldUI.cancel();
   if ($("editor").open) closeDialog("editor", true);
   lastHash = location.hash;
   $("sidebar").classList.remove("open");
@@ -556,7 +581,8 @@ async function refresh(silent) {
     busy ||
     roomUI.isSaving() ||
     adventureUI.isSaving() ||
-    partyUI.isSaving()
+    partyUI.isSaving() ||
+    worldUI.isSaving()
   )
     return;
   if (trainingUI.isActive()) {
@@ -584,11 +610,13 @@ async function refresh(silent) {
     roomUI.cancel();
     adventureUI.cancel();
     partyUI.cancel();
+    worldUI.cancel();
   }
   if (["room", "dashboard"].includes(route().key)) roomUI.load(!silent);
   if (["adventure", "dashboard"].includes(route().key))
     adventureUI.load(!silent);
   if (route().key === "party") partyUI.load(!silent);
+  if (route().key === "village") worldUI.load(!silent);
   trainingUI.load(!silent);
   const currentEpoch = epoch,
     revision = sha;
@@ -600,7 +628,8 @@ async function refresh(silent) {
       revision !== sha ||
       roomUI.isDirty() ||
       adventureUI.isDirty() ||
-      partyUI.isDirty()
+      partyUI.isDirty() ||
+      worldUI.isDirty()
     )
       return;
     if (

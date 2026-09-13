@@ -62,6 +62,7 @@ async function verifyLiveScreens(url, cookie, memberId) {
         "training",
         "rankings",
         "adventure",
+        "village",
         "party",
         "party/settings",
         "room",
@@ -72,25 +73,28 @@ async function verifyLiveScreens(url, cookie, memberId) {
         ...(memberId ? ["member/" + encodeURIComponent(memberId)] : []),
       ]) {
         await page.evaluate((h) => (location.hash = h), hash);
-        const selector = hash.startsWith("party")
-          ? ".party-cup-grid, #partyFields .panel"
-          : hash === "adventure"
-            ? ".adv-missions"
-            : hash.startsWith("room")
-              ? {
-                  room: ".room-stage",
-                  "room/mystery": ".room-case-steps",
-                  "room/words": "#wordInput",
-                  "room/art": "#inkCanvas",
-                  "room/maze": "#mazeMap",
-                }[hash]
-              : hash === "dashboard"
-                ? ".dash-hero"
-                : hash === "training"
-                  ? ".game-grid"
-                  : hash === "rankings"
-                    ? ".ranking-toolbar"
-                    : ".training-profile";
+        const selector =
+          hash === "village"
+            ? ".world-room"
+            : hash.startsWith("party")
+              ? ".party-cup-grid, #partyFields .panel"
+              : hash === "adventure"
+                ? ".adv-missions"
+                : hash.startsWith("room")
+                  ? {
+                      room: ".room-stage",
+                      "room/mystery": ".room-case-steps",
+                      "room/words": "#wordInput",
+                      "room/art": "#inkCanvas",
+                      "room/maze": "#mazeMap",
+                    }[hash]
+                  : hash === "dashboard"
+                    ? ".dash-hero"
+                    : hash === "training"
+                      ? ".game-grid"
+                      : hash === "rankings"
+                        ? ".ranking-toolbar"
+                        : ".training-profile";
         await page.locator(selector).first().waitFor();
         if (
           hash === "training" &&
@@ -178,6 +182,8 @@ async function main() {
     throw new Error("Anonymous training access did not return 401.");
   if ((await request("/api/room")).response.status !== 401)
     throw new Error("Anonymous room access was not denied.");
+  if ((await request("/api/world")).response.status !== 401)
+    throw new Error("Anonymous world access was not denied.");
   if ((await request("/api/party")).response.status !== 401)
     throw new Error("Anonymous party access was not denied.");
   if ((await request("/api/adventure")).response.status !== 401)
@@ -278,6 +284,18 @@ async function main() {
             : "unexpected response") +
           ").",
       );
+    const world = await request("/api/world", "GET", undefined, cookie);
+    if (
+      !world.response.ok ||
+      world.json.version !== 1 ||
+      !Array.isArray(world.json.quests) ||
+      !Array.isArray(world.json.events) ||
+      !world.json.profile ||
+      "receipts" in world.json
+    )
+      throw new Error(
+        "Live protected world read failed. No production data was changed.",
+      );
     const party = await request("/api/party", "GET", undefined, cookie);
     if (
       !party.response.ok ||
@@ -309,6 +327,7 @@ async function main() {
       room.json,
       adventure.json,
       party.json,
+      world.json,
     ])
       if (
         process.env.DATA_REPO_TOKEN &&

@@ -1,6 +1,6 @@
 {
   "name": "theme-sa-cloudflare",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,7 +11,7 @@
     "check:client": "node tools/check-client.mjs",
     "dev": "wrangler dev --ip 0.0.0.0 --port 3000",
     "deploy": "wrangler deploy",
-    "test:browser": "node tools/qa/browser.cjs && node tools/qa/games.cjs && node tools/qa/room.cjs && node tools/qa/adventure.cjs && node tools/qa/party.cjs && node tools/qa/smoke-script.mjs && node tools/qa/smoke-screens.cjs",
+    "test:browser": "node tools/qa/browser.cjs && node tools/qa/games.cjs && node tools/qa/room.cjs && node tools/qa/adventure.cjs && node tools/qa/party.cjs && node tools/qa/world.cjs && node tools/qa/smoke-script.mjs && node tools/qa/smoke-screens.cjs",
     "preview:demo": "node tools/preview.mjs"
   },
   "devDependencies": {

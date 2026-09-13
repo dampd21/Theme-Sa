@@ -81,6 +81,8 @@ for (const transient of [false, true]) {
         });
       if (p === "/api/training")
         return reply({ rules: 1, profiles: [], relays: [] });
+      if (p === "/api/world")
+        return reply({ version: 1, quests: [], events: [], profile: {} });
       if (p === "/api/party")
         return reply({ version: 1, cups: [], presets: [] });
       if (p === "/api/adventure") return reply({ version: 1, runs: [] });
@@ -91,7 +93,7 @@ for (const transient of [false, true]) {
   assert.deepEqual(failures, []);
   assert.equal(proc.exitCode, 0);
   assert.equal(state.logins, transient ? 2 : 1);
-  assert.equal(state.reads, 5);
+  assert.equal(state.reads, 6);
   assert.equal(state.screen, 1);
   assert.equal(state.logout, 1);
 }

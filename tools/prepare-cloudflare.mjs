@@ -1,3 +1,4 @@
+import { validateWorld } from "../worker/world.mjs";
 import { validateParty } from "../worker/party.mjs";
 import { validateAdventure } from "../worker/adventure.mjs";
 import { validateRoom } from "../worker/room.mjs";
@@ -392,6 +393,54 @@ async function main() {
       throw new Error("Private party backup mismatch; no deployment made.");
     console.log(
       "Existing party schema and exact private backup verified. Immutable photo definitions were not edited.",
+    );
+  }
+  const worldPath = contentPath + ".world.json";
+  const worldResponse = await git(
+    worldPath + "?ref=" + encodeURIComponent(branch),
+  );
+  if (worldResponse.status === 404)
+    console.log(
+      "No world file yet; read-only deployment does not initialize cups or games.",
+    );
+  else {
+    if (!worldResponse.ok)
+      throw new Error("Private world read failed; no deployment made.");
+    const file = await worldResponse.json();
+    try {
+      if (
+        file.type !== "file" ||
+        file.encoding !== "base64" ||
+        file.size > 800000 ||
+        !/^[a-f0-9]{40,64}$/.test(file.sha || "")
+      )
+        throw new Error();
+      const bytes = Buffer.from(file.content.replace(/\s/g, ""), "base64");
+      if (bytes.length > 800000) throw new Error();
+      validateWorld(
+        JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
+      );
+    } catch {
+      throw new Error(
+        "World schema compatibility failed. Existing records are unchanged; no deployment made.",
+      );
+    }
+    const backup = worldPath + ".before-update-" + file.sha + ".json";
+    const old = await git(backup + "?ref=" + encodeURIComponent(branch));
+    if (old.status === 404) {
+      const saved = await git(backup, "PUT", {
+        message: "Back up private world before deployment",
+        content: file.content.replace(/\s/g, ""),
+        branch,
+      });
+      if (!saved.ok || (await saved.json()).content?.sha !== file.sha)
+        throw new Error(
+          "Exact private world backup failed; no deployment made.",
+        );
+    } else if (!old.ok || (await old.json()).sha !== file.sha)
+      throw new Error("Private world backup mismatch; no deployment made.");
+    console.log(
+      "Existing world schema and exact private backup verified. Existing profile, pet, quest and game records were not edited.",
     );
   }
   await writeFile(
