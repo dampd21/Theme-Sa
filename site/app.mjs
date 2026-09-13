@@ -1,3 +1,4 @@
+import { createPartyUI } from "./party-ui.mjs";
 import { createAdventureUI } from "./adventure-ui.mjs";
 import { sealSVG } from "./adventure-art.mjs";
 import { createRoomUI } from "./room-ui.mjs";
@@ -105,6 +106,15 @@ const adventureUI = createAdventureUI({
     if (logged && !dirty()) render();
   },
 });
+const partyUI = createPartyUI({
+  api,
+  getState: () => state,
+  getActor: () => actor,
+  esc,
+  toast,
+  requireActor,
+  needLogin,
+});
 let profileChoice = "";
 function profileGate(force = false) {
   if (!logged || (!force && actor && state.members.some((m) => m.id === actor)))
@@ -194,7 +204,8 @@ function dirty() {
     !!$("commentText")?.value.trim() ||
     trainingUI.isActive() ||
     roomUI.isDirty() ||
-    adventureUI.isDirty()
+    adventureUI.isDirty() ||
+    partyUI.isDirty()
   );
 }
 function signature() {
@@ -333,7 +344,8 @@ function needLogin() {
   $("reauthPassword").focus();
 }
 $("logoutButton").onclick = async () => {
-  if (busy || roomUI.isSaving() || adventureUI.isSaving()) return;
+  if (busy || roomUI.isSaving() || adventureUI.isSaving() || partyUI.isSaving())
+    return;
   if (
     (dirty() || pending) &&
     !confirm("저장하지 않은 내용이 사라져요. 로그아웃할까요?")
@@ -346,6 +358,7 @@ $("logoutButton").onclick = async () => {
     trainingUI.reset();
     roomUI.reset();
     adventureUI.reset();
+    await partyUI.reset();
     state = emptyState();
     sha = null;
     pending = null;
@@ -401,6 +414,7 @@ const navSections = [
       ["members", "팀원 기록실", "◫"],
       ["room", "살아 있는 기록실", "☽"],
       ["adventure", "기록실 너머 · 모험", "🧭"],
+      ["party", "월드컵 · 복불복 놀이방", "🏆"],
       ["training", "퇴마 훈련소", "⚔"],
       ["rankings", "훈련 랭킹", "♛"],
       ["organization", "직함 · 조직도", "⌘"],
@@ -479,8 +493,12 @@ function render() {
     trainingUI.renderDashboard();
     document
       .querySelector(".dash-hero")
-      ?.insertAdjacentHTML("afterend", adventureUI.teaser() + roomUI.teaser());
+      ?.insertAdjacentHTML(
+        "afterend",
+        partyUI.teaser() + adventureUI.teaser() + roomUI.teaser(),
+      );
   } else if (r.key === "adventure") adventureUI.render();
+  else if (r.key === "party") partyUI.render(r.id);
   else if (r.key === "room") roomUI.render();
   else if (r.key === "training") trainingUI.renderTraining(r.id);
   else if (r.key === "rankings") trainingUI.renderRanks(r.id);
@@ -502,7 +520,12 @@ function render() {
   }
 }
 window.addEventListener("hashchange", () => {
-  if (busy || roomUI.isSaving() || adventureUI.isSaving()) {
+  if (
+    busy ||
+    roomUI.isSaving() ||
+    adventureUI.isSaving() ||
+    partyUI.isSaving()
+  ) {
     history.replaceState(null, "", lastHash || "#members");
     toast("저장 중입니다. 잠시만 기다려 주세요.");
     return;
@@ -517,6 +540,7 @@ window.addEventListener("hashchange", () => {
   if (trainingUI.isActive()) trainingUI.cancel(false);
   roomUI.cancel();
   adventureUI.cancel();
+  partyUI.cancel();
   if ($("editor").open) closeDialog("editor", true);
   lastHash = location.hash;
   $("sidebar").classList.remove("open");
@@ -527,7 +551,14 @@ window.addEventListener("hashchange", () => {
 });
 $("refreshButton").onclick = () => refresh(false);
 async function refresh(silent) {
-  if (!logged || busy || roomUI.isSaving() || adventureUI.isSaving()) return;
+  if (
+    !logged ||
+    busy ||
+    roomUI.isSaving() ||
+    adventureUI.isSaving() ||
+    partyUI.isSaving()
+  )
+    return;
   if (trainingUI.isActive()) {
     if (silent) return;
     if (!confirm("진행 중인 게임을 중단하고 최신 기록을 불러올까요?")) return;
@@ -552,10 +583,12 @@ async function refresh(silent) {
   if (!silent) {
     roomUI.cancel();
     adventureUI.cancel();
+    partyUI.cancel();
   }
   if (["room", "dashboard"].includes(route().key)) roomUI.load(!silent);
   if (["adventure", "dashboard"].includes(route().key))
     adventureUI.load(!silent);
+  if (route().key === "party") partyUI.load(!silent);
   trainingUI.load(!silent);
   const currentEpoch = epoch,
     revision = sha;
@@ -566,7 +599,8 @@ async function refresh(silent) {
       !logged ||
       revision !== sha ||
       roomUI.isDirty() ||
-      adventureUI.isDirty()
+      adventureUI.isDirty() ||
+      partyUI.isDirty()
     )
       return;
     if (
@@ -1272,6 +1306,10 @@ function renderSettings() {
       "설정 변경은 모든 팀원에게 적용됩니다. 공용 비밀번호를 아는 사람은 같은 편집 권한을 가집니다.",
     ) +
     `<div class="tools-grid"><section class="panel"><h2>우리 팀의 이름</h2><p class="prose" style="margin:20px 0">${esc(state.teamName)}</p><button id="renameTeam" class="primary">팀명 바꾸기</button></section><section class="panel"><div class="split"><h2>사용자 정의 항목</h2><button id="addField">＋ 항목 추가</button></div><p class="hint">상징 동물·주무기·수호령처럼 필요한 프로필 항목을 직접 만들어요. 최대 30개.</p>${state.customFields.map((f) => `<div class="list-row split"><b>${esc(f.label)}</b><button data-field="${esc(f.id)}">수정</button></div>`).join("") || '<p class="hint">아직 추가한 항목이 없어요.</p>'}</section></div><div class="callout">프로필의 학교·주소 등 개인정보는 필요한 범위에서 동의를 받고 기록하세요. 직함은 표시용이고 별도 관리자 인증 기능은 아닙니다.</div>`;
+  $("view").insertAdjacentHTML(
+    "afterbegin",
+    `<section class="panel"><h2>🏆 월드컵 · 복불복 설정</h2><p class="hint">누구나 사진·이름으로 64강 월드컵을 만들고 놀이 문구를 공유할 수 있어요.</p><a href="#party/settings" class="button">월드컵 · 놀이 설정 열기 →</a></section>`,
+  );
   $("renameTeam").onclick = () =>
     openEditor(
       "우리 팀 이름",
@@ -1779,7 +1817,7 @@ function renderGuide() {
       "사용 안내 · 백업",
       "일반 저장은 입력창의 ‘기록 저장하기’를 사용하세요. 파일 백업은 선택 사항입니다.",
     ) +
-    `<section class="panel"><h2>기록 저장 순서</h2><div class="list-row"><b>01 · 내용을 작성해요</b><p>팀원 추가 또는 기록 수정에서 정보를 입력합니다. 입력만으로는 저장되지 않습니다.</p></div><div class="list-row"><b>02 · 수정 전후를 확인해요</b><p>‘기록 저장하기’를 누르면 바뀐 내용이 표시됩니다. ‘확인하고 저장’을 누르면 팀 전체에 반영됩니다.</p></div><div class="list-row"><b>03 · 저장 완료를 확인해요</b><p>상단에 ‘저장 완료 · 시간’이 표시됩니다. 단순히 화면을 닫거나 파일을 내려받는 것은 공동 기록 저장이 아닙니다.</p></div><div class="list-row"><b>04 · 작성 중에는 새로고침하지 않아요</b><p>입력은 화면 메모리에 있습니다. 로그인이 만료되면 입력을 유지한 채 다시 로그인할 수 있어요. 기기 종료나 강제 새로고침은 입력을 잃게 할 수 있습니다.</p></div><div class="list-row"><b>05 · 충돌 시 먼저 확인해요</b><p>다른 사람이 먼저 저장하면 덮어쓰지 않고 중단합니다. 내 초안을 복사해 두고 ‘최신 기록’으로 불러온 후 필요한 부분을 다시 적용하세요.</p></div><div class="callout">활동 프로필은 이름 선택일 뿐 본인 인증이 아닙니다. 부팀장·치료사 등 직함도 접근 권한과 무관합니다. 같은 비밀번호를 아는 사람은 전체 기록을 편집할 수 있어요.</div><h2>훈련소 사용하기</h2><p class="hint">상단 활동 프로필을 선택하고 <a href="#training">퇴마 훈련소</a>에서 게임을 시작하세요. 여섯 훈련 능력치는 기존 설정 능력치와 별개로 0부터 30까지 성장합니다. 게임 결과는 종료 후 자동 저장됩니다. 첫 5회 기본 XP, 다음 5회 절반, 이후 기록 도전만 가능합니다. 생존전은 공정/성장 모드로 나뉘며 XP는 주지 않습니다. 프로필 상세에서 게임별 랭크를, <a href="#rankings">훈련 랭킹</a>에서 주간·역대·조작별 순위를 확인하세요. 공동 봉인은 서로 다른 세 프로필이 완성하면 보상을 함께 받습니다.</p><div class="callout">게임 중 탭 이동·화면 끄기는 도전을 중단합니다. 저장 실패 시 같은 결과로 다시 저장하세요. 강제 새로고침이나 배포 후에는 미저장 결과를 잃을 수 있어요. 훈련은 친구 사이의 신뢰 기반 기록이며 본인 인증·완벽한 부정행위 방지는 제공하지 않습니다.</div><h2>선택 사항 · 파일 백업</h2><p class="hint">백업에는 개인정보가 포함될 수 있어요. 공개하지 마세요. 전체 복원은 팀의 현재 기록을 교체합니다. 이 버튼의 백업·복원에는 별도 훈련 XP·랭킹이 포함되지 않습니다. 훈련은 관리자가 비공개 GitHub의 별도 파일과 이력으로 관리합니다.</p><div class="head-actions" style="margin-top:15px"><button id="exportArchive">기록 사본 내려받기</button><button id="importArchive">백업 파일 복원</button><input type="file" id="backupInput" accept=".json,application/json" hidden></div><div class="callout">v1 기록은 읽을 때 확장 형식으로 호환됩니다. 첫 확장 저장 전에 원본 파일을 같은 비공개 GitHub 저장소에 별도 보관합니다. 휴지통 제거는 GitHub 이력·백업의 삭제가 아닙니다.</div><h2>보관 한도</h2><p class="hint">현재 팀원 300명, 직함 50개, 사용자 항목 30개, 각 기록 종류 200개, 기록별 댓글 100개, 최근 활동 300건, 전체 JSON 900KB입니다. 이미지 업로드 대신 제공 아바타를 사용합니다. 사진·대용량 문서·실시간 채팅을 위한 저장소는 아닙니다.</p></section>`;
+    `<section class="panel"><h2>기록 저장 순서</h2><div class="list-row"><b>01 · 내용을 작성해요</b><p>팀원 추가 또는 기록 수정에서 정보를 입력합니다. 입력만으로는 저장되지 않습니다.</p></div><div class="list-row"><b>02 · 수정 전후를 확인해요</b><p>‘기록 저장하기’를 누르면 바뀐 내용이 표시됩니다. ‘확인하고 저장’을 누르면 팀 전체에 반영됩니다.</p></div><div class="list-row"><b>03 · 저장 완료를 확인해요</b><p>상단에 ‘저장 완료 · 시간’이 표시됩니다. 단순히 화면을 닫거나 파일을 내려받는 것은 공동 기록 저장이 아닙니다.</p></div><div class="list-row"><b>04 · 작성 중에는 새로고침하지 않아요</b><p>입력은 화면 메모리에 있습니다. 로그인이 만료되면 입력을 유지한 채 다시 로그인할 수 있어요. 기기 종료나 강제 새로고침은 입력을 잃게 할 수 있습니다.</p></div><div class="list-row"><b>05 · 충돌 시 먼저 확인해요</b><p>다른 사람이 먼저 저장하면 덮어쓰지 않고 중단합니다. 내 초안을 복사해 두고 ‘최신 기록’으로 불러온 후 필요한 부분을 다시 적용하세요.</p></div><div class="callout">활동 프로필은 이름 선택일 뿐 본인 인증이 아닙니다. 부팀장·치료사 등 직함도 접근 권한과 무관합니다. 같은 비밀번호를 아는 사람은 전체 기록을 편집할 수 있어요.</div><h2>훈련소 사용하기</h2><p class="hint">상단 활동 프로필을 선택하고 <a href="#training">퇴마 훈련소</a>에서 게임을 시작하세요. 여섯 훈련 능력치는 기존 설정 능력치와 별개로 0부터 30까지 성장합니다. 게임 결과는 종료 후 자동 저장됩니다. 첫 5회 기본 XP, 다음 5회 절반, 이후 기록 도전만 가능합니다. 생존전은 공정/성장 모드로 나뉘며 XP는 주지 않습니다. 프로필 상세에서 게임별 랭크를, <a href="#rankings">훈련 랭킹</a>에서 주간·역대·조작별 순위를 확인하세요. 공동 봉인은 서로 다른 세 프로필이 완성하면 보상을 함께 받습니다.</p><div class="callout">게임 중 탭 이동·화면 끄기는 도전을 중단합니다. 저장 실패 시 같은 결과로 다시 저장하세요. 강제 새로고침이나 배포 후에는 미저장 결과를 잃을 수 있어요. 훈련은 친구 사이의 신뢰 기반 기록이며 본인 인증·완벽한 부정행위 방지는 제공하지 않습니다.</div><h2>선택 사항 · 파일 백업</h2><p class="hint">백업에는 개인정보가 포함될 수 있어요. 공개하지 마세요. 전체 복원은 팀의 현재 기록을 교체합니다. 이 버튼의 백업·복원에는 별도 훈련 XP·랭킹이 포함되지 않습니다. 훈련은 관리자가 비공개 GitHub의 별도 파일과 이력으로 관리합니다.</p><div class="head-actions" style="margin-top:15px"><button id="exportArchive">기록 사본 내려받기</button><button id="importArchive">백업 파일 복원</button><input type="file" id="backupInput" accept=".json,application/json" hidden></div><div class="callout">v1 기록은 읽을 때 확장 형식으로 호환됩니다. 첫 확장 저장 전에 원본 파일을 같은 비공개 GitHub 저장소에 별도 보관합니다. 휴지통 제거는 GitHub 이력·백업의 삭제가 아닙니다.</div><h2>보관 한도</h2><p class="hint">현재 팀원 300명, 직함 50개, 사용자 항목 30개, 각 기록 종류 200개, 기록별 댓글 100개, 최근 활동 300건, 전체 JSON 900KB입니다. 프로필은 제공 아바타를 사용합니다. 놀이방 월드컵 사진은 별도 용량 제한 안에서 업로드할 수 있습니다. 사진·대용량 문서·실시간 채팅을 위한 저장소는 아닙니다.</p></section>`;
   $("exportArchive").onclick = () => {
     if (
       !confirm(

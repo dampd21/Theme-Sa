@@ -62,6 +62,8 @@ async function verifyLiveScreens(url, cookie, memberId) {
         "training",
         "rankings",
         "adventure",
+        "party",
+        "party/settings",
         "room",
         "room/mystery",
         "room/words",
@@ -70,8 +72,9 @@ async function verifyLiveScreens(url, cookie, memberId) {
         ...(memberId ? ["member/" + encodeURIComponent(memberId)] : []),
       ]) {
         await page.evaluate((h) => (location.hash = h), hash);
-        const selector =
-          hash === "adventure"
+        const selector = hash.startsWith("party")
+          ? ".party-cup-grid, #partyFields .panel"
+          : hash === "adventure"
             ? ".adv-missions"
             : hash.startsWith("room")
               ? {
@@ -88,7 +91,7 @@ async function verifyLiveScreens(url, cookie, memberId) {
                   : hash === "rankings"
                     ? ".ranking-toolbar"
                     : ".training-profile";
-        await page.locator(selector).waitFor();
+        await page.locator(selector).first().waitFor();
         if (
           hash === "training" &&
           (await page.locator(".game-card").count()) !== 7
@@ -175,6 +178,8 @@ async function main() {
     throw new Error("Anonymous training access did not return 401.");
   if ((await request("/api/room")).response.status !== 401)
     throw new Error("Anonymous room access was not denied.");
+  if ((await request("/api/party")).response.status !== 401)
+    throw new Error("Anonymous party access was not denied.");
   if ((await request("/api/adventure")).response.status !== 401)
     throw new Error("Anonymous adventure access was not denied.");
   let cookie = "",
@@ -273,6 +278,17 @@ async function main() {
             : "unexpected response") +
           ").",
       );
+    const party = await request("/api/party", "GET", undefined, cookie);
+    if (
+      !party.response.ok ||
+      party.json.version !== 1 ||
+      !Array.isArray(party.json.cups) ||
+      !Array.isArray(party.json.presets) ||
+      "receipts" in party.json
+    )
+      throw new Error(
+        "Live protected party read failed. No production data was changed.",
+      );
     const adventure = await request("/api/adventure", "GET", undefined, cookie);
     if (
       !adventure.response.ok ||
@@ -292,6 +308,7 @@ async function main() {
       training.json,
       room.json,
       adventure.json,
+      party.json,
     ])
       if (
         process.env.DATA_REPO_TOKEN &&

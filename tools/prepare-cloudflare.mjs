@@ -1,3 +1,4 @@
+import { validateParty } from "../worker/party.mjs";
 import { validateAdventure } from "../worker/adventure.mjs";
 import { validateRoom } from "../worker/room.mjs";
 // CI-only preparation. All actual secrets are written outside the repository.
@@ -343,6 +344,54 @@ async function main() {
       throw new Error("Private adventure backup mismatch; no deployment made.");
     console.log(
       "Existing adventure schema and exact private backup verified. Adventure records were not edited.",
+    );
+  }
+  const partyPath = contentPath + ".party.json";
+  const partyResponse = await git(
+    partyPath + "?ref=" + encodeURIComponent(branch),
+  );
+  if (partyResponse.status === 404)
+    console.log(
+      "No party file yet; read-only deployment does not initialize cups or games.",
+    );
+  else {
+    if (!partyResponse.ok)
+      throw new Error("Private party read failed; no deployment made.");
+    const file = await partyResponse.json();
+    try {
+      if (
+        file.type !== "file" ||
+        file.encoding !== "base64" ||
+        file.size > 800000 ||
+        !/^[a-f0-9]{40,64}$/.test(file.sha || "")
+      )
+        throw new Error();
+      const bytes = Buffer.from(file.content.replace(/\s/g, ""), "base64");
+      if (bytes.length > 800000) throw new Error();
+      validateParty(
+        JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
+      );
+    } catch {
+      throw new Error(
+        "Party schema compatibility failed. Existing records are unchanged; no deployment made.",
+      );
+    }
+    const backup = partyPath + ".before-update-" + file.sha + ".json";
+    const old = await git(backup + "?ref=" + encodeURIComponent(branch));
+    if (old.status === 404) {
+      const saved = await git(backup, "PUT", {
+        message: "Back up private party before deployment",
+        content: file.content.replace(/\s/g, ""),
+        branch,
+      });
+      if (!saved.ok || (await saved.json()).content?.sha !== file.sha)
+        throw new Error(
+          "Exact private party backup failed; no deployment made.",
+        );
+    } else if (!old.ok || (await old.json()).sha !== file.sha)
+      throw new Error("Private party backup mismatch; no deployment made.");
+    console.log(
+      "Existing party schema and exact private backup verified. Immutable photo definitions were not edited.",
     );
   }
   await writeFile(

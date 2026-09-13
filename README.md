@@ -6,6 +6,20 @@
 
 방문자는 공용 비밀번호 한 칸으로 로그인하고, 댓글·투표 등에 사용할 활동 프로필을 선택합니다. 선택 이름은 본인 인증이 아닙니다. GitHub 계정이나 토큰을 준비할 필요가 없습니다. GitHub 연결 토큰은 서버에만 있으며, 프론트엔드에 평문·암호문 형태로 전달하지 않습니다.
 
+## Edition 08 · 월드컵과 복불복 놀이방
+
+**구현 및 합성 검증 완료 · 운영 배포 승인 대기**
+
+- 누구나 만드는 사진/텍스트 이상형 월드컵, 64·32·16·8·4·2강, 후보/사진 일괄 추가
+- 사진은 기기에서 최대 256px·8KiB JPEG로 압축하여 비공개 데이터 저장소에 공유, 별도 유료 이미지 서비스 없음
+- 서버 확정 무작위 대진, 63선택 완주, 라운드별 공동 체크포인트와 기기 초안, 다른 기기 이어 하기
+- 시작 당시 후보/사진을 고정하여 설정 수정이 진행 중 경기를 바꾸지 않음
+- 사다리·룰렛·제비뽑기·팀 나누기·순서·폭탄 돌리기·주사위·양면 동전, 임의 문구 및 공유 설정
+- 기존 기록/훈련/방/모험 데이터와 분리, 무료 사용량·사진·발행 한도 명시
+- [월드컵 · 놀이방 사용 안내, 저장/사진/비용/권한 한도](월드컵-놀이방-안내.md)
+
+36개 서버 테스트와 전체 브라우저 회귀 검사로 검증합니다. 상세한 신규 시나리오는 `tools/qa/party.cjs`와 `worker/party.test.mjs`에 있습니다. 테스트 사진과 경기 기록은 합성 환경에서만 생성합니다.
+
 ## Edition 07 · 기록실 너머의 모험
 
 **2026-09-13 운영 배포 및 검증 완료** · [성공한 배포](https://github.com/dampd21/Theme-Sa/actions/runs/34745836183) · 운영 코드 `52b0ff5`
@@ -124,26 +138,26 @@ Cloudflare **My Profile → API Tokens → Create Token**으로 이동합니다.
 
 **Secrets 탭**에 다음 세 개를 등록합니다.
 
-| 이름 | 값 |
-|---|---|
-| `CLOUDFLARE_API_TOKEN` | 2번의 Cloudflare 배포용 API 토큰 |
-| `SITE_PASSWORD` | 팀 공용 비밀번호. 5~200자 허용, 보안상 12자 이상 권장 |
-| `DATA_REPO_TOKEN` | 3번의 기록 저장소 전용 GitHub Fine-grained 토큰 |
+| 이름                   | 값                                                    |
+| ---------------------- | ----------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN` | 2번의 Cloudflare 배포용 API 토큰                      |
+| `SITE_PASSWORD`        | 팀 공용 비밀번호. 5~200자 허용, 보안상 12자 이상 권장 |
+| `DATA_REPO_TOKEN`      | 3번의 기록 저장소 전용 GitHub Fine-grained 토큰       |
 
 **Variables 탭**에 다음 값을 등록합니다.
 
-| 이름 | 값 |
-|---|---|
+| 이름                    | 값                          |
+| ----------------------- | --------------------------- |
 | `CLOUDFLARE_ACCOUNT_ID` | 1번의 Cloudflare Account ID |
 
 기존 기록 연결용 Variables는 유지합니다. 없어도 `wrangler.jsonc`의 기본값을 사용합니다.
 
-| 변수 | 기본값 |
-|---|---|
-| `ARCHIVE_OWNER` | `dampd21` |
-| `ARCHIVE_REPO` | `Theme-Sa-data` |
-| `ARCHIVE_BRANCH` | `main` |
-| `ARCHIVE_PATH` | `data/team.json` |
+| 변수             | 기본값           |
+| ---------------- | ---------------- |
+| `ARCHIVE_OWNER`  | `dampd21`        |
+| `ARCHIVE_REPO`   | `Theme-Sa-data`  |
+| `ARCHIVE_BRANCH` | `main`           |
+| `ARCHIVE_PATH`   | `data/team.json` |
 
 **실제 비밀번호·토큰은 채팅이나 코드에 붙여 넣지 말고 Secrets에 직접 입력하세요.** Account ID와 저장소 좌표는 비밀 값이 아니지만 API 토큰은 반드시 Secrets에 넣습니다.
 

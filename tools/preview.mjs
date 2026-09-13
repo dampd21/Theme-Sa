@@ -102,6 +102,6 @@ http
   })
   .listen(3000, "0.0.0.0", () =>
     console.log(
-      "Edition 07 synthetic preview. Password Preview7. No production data or credentials.",
+      "Edition 08 synthetic preview. Password Preview7. No production data or credentials.",
     ),
   );
