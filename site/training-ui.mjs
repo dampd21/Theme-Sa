@@ -1,7 +1,11 @@
+import { sealSVG } from "./adventure-art.mjs";
 import {
   ABILITIES,
   GAMES,
   RULES_VERSION,
+  DIFFICULTY_VERSION,
+  guardWindow,
+  difficultyPhase,
   progress,
   levels,
   zeroXP,
@@ -12,10 +16,15 @@ import {
   stepSim,
   STEP,
   WORLD,
-  rankRows,
+  rankRows as rankedRows,
   periodKeys,
 } from "./game-rules.mjs";
 export function createTrainingUI(H) {
+  let rankEra = 2;
+  const rankRows = (...args) => {
+    args[7] = rankEra;
+    return rankedRows(...args);
+  };
   const { api, getState, getActor, esc, toast, requireActor, refreshView } = H;
   const $ = (id) => document.getElementById(id),
     initialControl = matchMedia("(pointer: coarse)").matches ? "touch" : "pc",
@@ -219,7 +228,7 @@ export function createTrainingUI(H) {
     $("view").innerHTML =
       heading("대시보드", "팀의 오늘과 나의 성장을 한눈에 확인하세요.") +
       loadingHTML() +
-      `<section class="dash-hero"><div><p class="eyebrow">ONE TEAM. A THOUSAND STORIES.</p><h2>${actor ? esc(name(actor)) + " 님," : "우리 팀의"}<br><em>오늘의 훈련을 시작해 볼까요?</em></h2><p>같은 조건에서 기록을 겨루고,<br>쌓은 경험치로 나만의 퇴마사를 성장시켜요.</p><div class="dash-actions"><a class="primary" href="#training">훈련소 입장 →</a><a href="#members">팀원 기록실</a></div></div><div class="dash-seal" aria-hidden="true"><strong>符</strong><small>FOCUS · GROW · TOGETHER</small></div></section><div class="dash-stat-grid"><div class="stat"><small>우리 팀원</small><b>${s.members.length}명</b></div><div class="stat"><small>나의 훈련 단계 합계</small><b>${total}</b></div><div class="stat"><small>미완료 임무</small><b>${missions.length}개</b></div><div class="stat"><small>확인할 공지</small><b>${notices.filter((n) => !n.acknowledged.includes(actor)).length}개</b></div></div><div class="dash-grid"><div><section class="panel"><div class="split"><h3>나의 훈련 능력치</h3>${actor ? `<a href="#member/${encodeURIComponent(actor)}" class="muted small">프로필 →</a>` : ""}</div><p class="hint">${actor ? "기존 설정 능력치는 그대로 유지됩니다." : "상단 활동 프로필을 선택하면 나의 성장과 기록이 표시됩니다."}</p>${skillCards()}<p class="daily-note">각 능력 훈련은 하루 첫 5회 기본 보상, 다음 5회 절반 보상입니다. 이후에도 기록 도전은 가능해요. 출석을 놓쳐도 능력치는 감소하지 않습니다.</p></section><section class="panel"><div class="split"><h3>나의 최근 도전</h3><a href="#rankings" class="muted small">전체 랭킹 →</a></div>${recent.map((r) => `<div class="dash-list"><span class="rank-medal">${GAMES[r.game].icon}</span><div><b>${esc(GAMES[r.game].name)}</b><small>${esc(GAMES[r.game].modes.find((m) => m[0] === r.mode)?.[1] || "")}${r.improvement ? " · 최고 기록 경신" : ""}</small><p>${esc(r.detail)}</p><small>${esc(timestamp(r.at))}</small></div></div>`).join("") || '<p class="hint">첫 번째 훈련 기록을 만들어 보세요.</p>'}</section>${relayHTML()}</div><div><section class="panel"><div class="split"><h3>이번 주 7.77 TOP 3</h3><a href="#rankings/focus" class="muted small">더 보기 →</a></div><p class="hint">시간 표시 · ${boardControl === "touch" ? "터치" : "PC"} · 월요일 시작 / 한국 시간</p>${
+      `<section class="dash-hero"><div><p class="eyebrow">ONE TEAM. A THOUSAND STORIES.</p><h2>${actor ? esc(name(actor)) + " 님," : "우리 팀의"}<br><em>오늘의 훈련을 시작해 볼까요?</em></h2><p>같은 조건에서 기록을 겨루고,<br>쌓은 경험치로 나만의 퇴마사를 성장시켜요.</p><div class="dash-actions"><a class="primary" href="#training">훈련소 입장 →</a><a href="#members">팀원 기록실</a></div></div><div class="dash-seal" aria-hidden="true">${sealSVG}<small>FOCUS · GROW · TOGETHER</small></div></section><div class="dash-stat-grid"><div class="stat"><small>우리 팀원</small><b>${s.members.length}명</b></div><div class="stat"><small>나의 훈련 단계 합계</small><b>${total}</b></div><div class="stat"><small>미완료 임무</small><b>${missions.length}개</b></div><div class="stat"><small>확인할 공지</small><b>${notices.filter((n) => !n.acknowledged.includes(actor)).length}개</b></div></div><div class="dash-grid"><div><section class="panel"><div class="split"><h3>나의 훈련 능력치</h3>${actor ? `<a href="#member/${encodeURIComponent(actor)}" class="muted small">프로필 →</a>` : ""}</div><p class="hint">${actor ? "기존 설정 능력치는 그대로 유지됩니다." : "상단 활동 프로필을 선택하면 나의 성장과 기록이 표시됩니다."}</p>${skillCards()}<p class="daily-note">각 능력 훈련은 하루 첫 5회 기본 보상, 다음 5회 절반 보상입니다. 이후에도 기록 도전은 가능해요. 출석을 놓쳐도 능력치는 감소하지 않습니다.</p></section><section class="panel"><div class="split"><h3>나의 최근 도전</h3><a href="#rankings" class="muted small">전체 랭킹 →</a></div>${recent.map((r) => `<div class="dash-list"><span class="rank-medal">${GAMES[r.game].icon}</span><div><b>${esc(GAMES[r.game].name)}</b><small>${esc(GAMES[r.game].modes.find((m) => m[0] === r.mode)?.[1] || "")}${r.improvement ? " · 최고 기록 경신" : ""}</small><p>${esc(r.detail)}</p><small>${esc(timestamp(r.at))}</small></div></div>`).join("") || '<p class="hint">첫 번째 훈련 기록을 만들어 보세요.</p>'}</section>${relayHTML()}</div><div><section class="panel"><div class="split"><h3>이번 주 7.77 TOP 3</h3><a href="#rankings/focus" class="muted small">더 보기 →</a></div><p class="hint">시간 표시 · ${boardControl === "touch" ? "터치" : "PC"} · 월요일 시작 / 한국 시간</p>${
         best
           .slice(0, 3)
           .map(
@@ -296,13 +305,13 @@ export function createTrainingUI(H) {
     agility: [
       "캐릭터를 이동해 날아오는 도깨비불을 피하세요.",
       "터치·마우스 드래그 또는 WASD·방향키로 이동합니다.",
-      "점선 예고 후 공격이 활성화됩니다. 체력 3, 최대 90초.",
+      "30초마다 위험 단계가 올라갑니다. 더 빠른 불꽃과 교차 공격, 짧아지는 예고를 피하세요.",
       "훈련 능력치에 관계없이 모두 같은 조건입니다. 12초 이상 생존하면 XP 대상입니다.",
     ],
     defense: [
       "공격 구슬이 바깥 원이 아닌 <strong>중앙 ⬡ 문양</strong>에 도착할 때 방어하세요.",
       "터치·클릭 또는 Space. 총 20회 공격을 끝까지 진행합니다.",
-      "±90ms 완벽 방어, ±220ms 일반 방어입니다.",
+      "후반으로 갈수록 공격 간격과 방어 판정이 좁아집니다. 완벽 ±90→42ms, 방어 ±220→106ms.",
       "아무 때나 연타하면 감점됩니다. 3회 이상 방어하면 XP 대상입니다.",
     ],
     sense: [
@@ -397,7 +406,7 @@ export function createTrainingUI(H) {
         "주간 기록과 역대 최고 기록을 게임·모드·조작 방식별로 비교해요.",
       ) +
       loadingHTML() +
-      `<div class="ranking-toolbar"><label>게임<select id="rankGame">${Object.entries(
+      `<p class="hint">강화 규칙의 순위는 이전 기록과 분리합니다. 기존 경험치와 최고 기록은 보존됩니다.</p><label>규칙 세대<select id="rankEra"><option value="2" ${rankEra === 2 ? "selected" : ""}>강화 훈련 · 새 규칙</option><option value="1" ${rankEra === 1 ? "selected" : ""}>이전 훈련 · 보관된 기록</option></select></label><div class="ranking-toolbar"><label>게임<select id="rankGame">${Object.entries(
         GAMES,
       )
         .map(
@@ -408,6 +417,10 @@ export function createTrainingUI(H) {
           "",
         )}</select></label><label>모드<select id="rankMode">${modes.map(([k, n]) => `<option value="${k}" ${k === boardMode ? "selected" : ""}>${n}</option>`).join("")}</select></label><label>조작<select id="rankControl"><option value="pc" ${boardControl === "pc" ? "selected" : ""}>PC</option><option value="touch" ${boardControl === "touch" ? "selected" : ""}>터치</option></select></label><label>기간<select id="rankPeriod"><option value="week" ${boardPeriod === "week" ? "selected" : ""}>이번 주</option><option value="all" ${boardPeriod === "all" ? "selected" : ""}>역대</option></select></label></div><section class="panel"><div class="split"><h2>${GAMES[boardGame].name}</h2><a class="game-link" href="#training/${boardGame}">도전하기</a></div><p class="hint">주간 집계: 월요일 00:00 · 한국 시간. 초기화되는 것은 주간 순위이며 경험치는 유지돼요.</p>${rows.map((r) => `<a class="ranking-row ${r.memberId === getActor() ? "mine" : ""}" href="#member/${encodeURIComponent(r.memberId)}"><span class="rank-medal">${r.rank}</span><div><h3>${esc(r.name)}</h3><small>${esc(timestamp(r.at))}</small></div><div class="record-score">${esc(r.detail)}</div></a>`).join("") || '<div class="ranking-empty">아직 이 조건의 기록이 없어요.<br>첫 번째 도전자가 되어 보세요.</div>'}</section>${boardGame === "focus" ? averageHTML() : ""}<p class="daily-note">공용 비밀번호와 선택 프로필을 사용하므로 실제 신원과 완벽한 부정행위 방지를 보장하지 않습니다. 자동화·기록 조작 없이 함께 즐겨 주세요.</p>`;
     wireReload();
+    $("rankEra").onchange = (e) => {
+      rankEra = Number(e.target.value);
+      renderRanks();
+    };
     $("rankGame").onchange = (e) => {
       boardGame = e.target.value;
       boardMode = GAMES[boardGame].modes[0][0];
@@ -460,6 +473,7 @@ export function createTrainingUI(H) {
       );
       const result = await api("training/start", "POST", {
         rules: RULES_VERSION,
+        difficulty: DIFFICULTY_VERSION,
         game,
         mode,
         control,
@@ -504,7 +518,7 @@ export function createTrainingUI(H) {
     else if (run.game === "purify" || run.game === "coop")
       arena =
         '<div id="memoryGrid" class="memory-grid">' +
-        ["☾", "火", "木", "符"]
+        ["☾", "🔥", "🌲", "✦"]
           .map(
             (x, i) =>
               `<button class="memory-rune" data-rune="${i}" aria-label="문양 ${i + 1} ${x}">${x}<small style="display:block;font-size:10px">${i + 1}</small></button>`,
@@ -583,7 +597,11 @@ export function createTrainingUI(H) {
     let round = 0,
       wrong = 0;
     for (const e of events) {
-      if (e.index === puzzle(current.run.seed, round).target) round++;
+      if (
+        e.index ===
+        puzzle(current.run.seed, round, current.run.difficulty || 1).target
+      )
+        round++;
       else wrong++;
     }
     return { round, wrong };
@@ -592,15 +610,15 @@ export function createTrainingUI(H) {
     if (!$("puzzleGrid")) return;
     const { round } = senseState();
     if (round >= 20) return;
-    const p = puzzle(current.run.seed, round),
+    const p = puzzle(current.run.seed, round, current.run.difficulty || 1),
       symbols = [
-        ["符", "祓"],
+        ["✦", "✧"],
         ["☾", "☽"],
         ["◇", "◆"],
-        ["木", "本"],
+        ["🌲", "🌳"],
       ][p.symbol];
     $("puzzleGrid").style.gridTemplateColumns =
-      `repeat(${p.size <= 8 ? 3 : 4},1fr)`;
+      `repeat(${p.size <= 8 ? 3 : p.size <= 16 ? 4 : 5},minmax(0,1fr))`;
     $("puzzleGrid").innerHTML = Array.from(
       { length: p.size },
       (_, i) =>
@@ -627,13 +645,22 @@ export function createTrainingUI(H) {
       ring.classList.remove("guard-flash");
       void ring.offsetWidth;
       ring.classList.add("guard-flash");
+      const attacks = attackTimes(run.seed, run.difficulty || 1);
+      const round = attacks.reduce(
+          (best, v, i) =>
+            Math.abs(v - t) < Math.abs(attacks[best] - t) ? i : best,
+          0,
+        ),
+        window = guardWindow(round, run.difficulty || 1);
       const nearest = Math.min(
-        ...attackTimes(run.seed).map((x) => Math.abs(x - t)),
+        ...attackTimes(run.seed, run.difficulty || 1).map((x) =>
+          Math.abs(x - t),
+        ),
       );
       $("gameMessage").textContent =
-        nearest <= 90
+        nearest <= window.perfect
           ? "완벽 방어!"
-          : nearest <= 220
+          : nearest <= window.hit
             ? "방어 성공"
             : "타이밍을 살펴보세요.";
       return;
@@ -642,7 +669,7 @@ export function createTrainingUI(H) {
       if (t - lastInput < 160 || t >= 45000) return;
       lastInput = t;
       const { round } = senseState(),
-        correct = index === puzzle(run.seed, round).target;
+        correct = index === puzzle(run.seed, round, run.difficulty || 1).target;
       events.push({ t, index });
       if (correct) {
         if (senseState().round === 20) finish(t);
@@ -683,10 +710,14 @@ export function createTrainingUI(H) {
         return;
       }
     } else if (run.game === "defense") {
-      const attacks = attackTimes(run.seed),
+      const attacks = attackTimes(run.seed, run.difficulty || 1),
         next = attacks.find((v) => v >= t),
         passed = attacks.filter((v) => v < t).length;
-      $("gameProgress").textContent = Math.min(20, passed + 1) + "/20";
+      $("gameProgress").textContent =
+        Math.min(20, passed + 1) +
+        "/20 · 판정 ±" +
+        Math.round(guardWindow(passed, run.difficulty || 1).hit) +
+        "ms";
       const orb = $("attackOrb");
       if (next && next - t < 900) {
         orb.hidden = false;
@@ -707,12 +738,12 @@ export function createTrainingUI(H) {
     } else if (run.game === "purify" || run.game === "coop") {
       const info = memoryInfo(run, events),
         watch = t < info.watchUntil,
-        flashIndex = Math.floor((t - info.roundStart) / 500),
+        flashIndex = Math.floor((t - info.roundStart) / info.beat),
         lit =
           watch &&
           t >= info.roundStart &&
           flashIndex < info.length &&
-          (t - info.roundStart) % 500 < 350
+          (t - info.roundStart) % info.beat < info.beat * 0.68
             ? info.seq[flashIndex]
             : -1;
       document.querySelectorAll("[data-rune]").forEach((b) => {
@@ -798,7 +829,7 @@ export function createTrainingUI(H) {
     ctx.font = "140px serif";
     ctx.fillStyle = "#748e5110";
     ctx.textAlign = "center";
-    ctx.fillText("符", 0, 50);
+    ctx.fillText("✦", 0, 50);
     ctx.restore();
     for (const i of s.pickups) {
       ctx.fillStyle = "#a9e395";
@@ -841,7 +872,17 @@ export function createTrainingUI(H) {
     ctx.fillStyle = "#29482b";
     ctx.font = "12px serif";
     ctx.textAlign = "center";
-    ctx.fillText("符", p.x, p.y + 4);
+    ctx.fillText("🛡", p.x, p.y + 4);
+    if (s.difficulty === 2) {
+      ctx.fillStyle = "#ead8a8";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(
+        "위험 단계 " + difficultyPhase(s.t) + " · 시간에 따라 강화",
+        14,
+        26,
+      );
+    }
     if (p.inv > s.t) {
       ctx.strokeStyle = "#ccdc9e";
       ctx.beginPath();

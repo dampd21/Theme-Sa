@@ -417,7 +417,7 @@ nav a span {
   margin-top: 12px;
 }
 .hero:after {
-  content: "符";
+  content: "✦";
   position: absolute;
   font-family: serif;
   right: 20px;

@@ -1,3 +1,4 @@
+import { validateAdventure } from "../worker/adventure.mjs";
 import { validateRoom } from "../worker/room.mjs";
 // CI-only preparation. All actual secrets are written outside the repository.
 import { randomBytes } from "node:crypto";
@@ -293,6 +294,55 @@ async function main() {
       throw new Error("Private room backup mismatch; no deployment made.");
     console.log(
       "Existing room schema and exact private backup verified. Room records were not edited.",
+    );
+  }
+  // Adventure records are independent: never initialize or reset them during deployment.
+  const adventurePath = contentPath + ".adventure.json";
+  const adventureResponse = await git(
+    adventurePath + "?ref=" + encodeURIComponent(branch),
+  );
+  if (adventureResponse.status === 404)
+    console.log(
+      "No adventure file yet; first shared interaction will create it. No adventure data was initialized.",
+    );
+  else {
+    if (!adventureResponse.ok)
+      throw new Error("Private adventure read failed; no deployment made.");
+    const file = await adventureResponse.json();
+    try {
+      if (
+        file.type !== "file" ||
+        file.encoding !== "base64" ||
+        file.size > 800000 ||
+        !/^[a-f0-9]{40,64}$/.test(file.sha || "")
+      )
+        throw new Error();
+      const bytes = Buffer.from(file.content, "base64");
+      if (bytes.length > 800000) throw new Error();
+      validateAdventure(
+        JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
+      );
+    } catch {
+      throw new Error(
+        "Adventure schema compatibility check failed. Existing adventure data is unchanged; no deployment made.",
+      );
+    }
+    const backup = adventurePath + ".before-update-" + file.sha + ".json";
+    const existing = await git(backup + "?ref=" + encodeURIComponent(branch));
+    if (existing.status === 404) {
+      const saved = await git(backup, "PUT", {
+        message: "Back up private adventure before deployment",
+        content: file.content.replace(/\s/g, ""),
+        branch,
+      });
+      if (!saved.ok || (await saved.json()).content?.sha !== file.sha)
+        throw new Error(
+          "Exact private adventure backup failed; no deployment made.",
+        );
+    } else if (!existing.ok || (await existing.json()).sha !== file.sha)
+      throw new Error("Private adventure backup mismatch; no deployment made.");
+    console.log(
+      "Existing adventure schema and exact private backup verified. Adventure records were not edited.",
     );
   }
   await writeFile(

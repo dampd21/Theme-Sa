@@ -44,7 +44,7 @@ function request(path, method = "GET", body, cookie) {
 function solved(run) {
   if (run.game === "focus") return { duration: 7770, actions: [{ t: 7770 }] };
   if (run.game === "defense") {
-    const times = attackTimes(run.seed);
+    const times = attackTimes(run.seed, run.difficulty || 1);
     return { duration: times.at(-1) + 400, actions: times.map((t) => ({ t })) };
   }
   if (run.game === "sense")
@@ -52,7 +52,7 @@ function solved(run) {
       duration: 4000,
       actions: Array.from({ length: 20 }, (_, i) => ({
         t: (i + 1) * 200,
-        index: puzzle(run.seed, i).target,
+        index: puzzle(run.seed, i, run.difficulty || 1).target,
       })),
     };
   if (["purify", "coop"].includes(run.game)) {
@@ -132,7 +132,15 @@ test("authenticated signed runs, server XP, exact replay protection, separate fi
     const r = await send(
       "training/start",
       "POST",
-      { rules: 1, game, mode, memberId, control: "pc", ...extra },
+      {
+        rules: 1,
+        difficulty: 2,
+        game,
+        mode,
+        memberId,
+        control: "pc",
+        ...extra,
+      },
       cookie,
     );
     assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
@@ -172,7 +180,16 @@ test("authenticated signed runs, server XP, exact replay protection, separate fi
   let overview = await (await send("training", "GET", null, cookie)).json();
   assert.equal(overview.profiles[0].xp[0], 15);
   assert.equal(
-    rankRows(overview, team().members, "focus", "visible", "pc")[0].rank,
+    rankRows(
+      overview,
+      team().members,
+      "focus",
+      "visible",
+      "pc",
+      "all",
+      undefined,
+      2,
+    )[0].rank,
     1,
   );
   r = await send(
@@ -187,6 +204,7 @@ test("authenticated signed runs, server XP, exact replay protection, separate fi
     "POST",
     {
       rules: 1,
+      difficulty: 2,
       game: "focus",
       mode: "visible",
       memberId: "missing",
@@ -262,6 +280,7 @@ test("three-profile relay pays cooperation XP once at completion, rejects repeat
       "POST",
       {
         rules: 1,
+        difficulty: 2,
         game: "coop",
         mode: "relay",
         control: "touch",
@@ -291,6 +310,7 @@ test("three-profile relay pays cooperation XP once at completion, rejects repeat
             "POST",
             {
               rules: 1,
+              difficulty: 2,
               game: "coop",
               mode: "relay",
               control: "touch",
@@ -343,7 +363,15 @@ async function gameHarness(
     const r = await send(
       "training/start",
       "POST",
-      { rules: 1, game, mode, control: "pc", memberId, ...extra },
+      {
+        rules: 1,
+        difficulty: 2,
+        game,
+        mode,
+        control: "pc",
+        memberId,
+        ...extra,
+      },
       cookie,
     );
     assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
@@ -441,6 +469,7 @@ test("concurrent same-token finishes, session binding and exact expiry cannot du
         "POST",
         {
           rules: 1,
+          difficulty: 2,
           game: "constructor",
           mode: "standard",
           memberId: "a",
@@ -547,12 +576,12 @@ test("relay simultaneous stage conflict, per-control contribution and practice i
     assert.equal(p.coop, 2);
     assert.equal(p.xp[5], 30);
     assert.equal(
-      p.bests.find((b) => b.key === "coop:relay:pc" && b.period === "all")
+      p.bests.find((b) => b.key === "coop:relay:pc:v2" && b.period === "all")
         .score,
       1,
     );
     assert.equal(
-      p.bests.find((b) => b.key === "coop:relay:touch" && b.period === "all")
+      p.bests.find((b) => b.key === "coop:relay:touch:v2" && b.period === "all")
         .score,
       1,
     );
@@ -588,6 +617,7 @@ test("unexpired receipt capacity fails closed without evicting proofs or changin
   const store = {
     version: 1,
     rules: 1,
+    difficulty: 2,
     profiles: [],
     receipts: Array.from({ length: 2000 }, (_, i) => ({
       id: "held-" + i,

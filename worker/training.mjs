@@ -1,6 +1,7 @@
 import {
   GAMES,
   RULES_VERSION,
+  DIFFICULTY_VERSION,
   evaluate,
   baseReward,
   progress,
@@ -69,7 +70,7 @@ export function validateTrainingStore(s) {
       ids.has(p.memberId) ||
       !six(p.xp, MAX_XP) ||
       !Array.isArray(p.bests) ||
-      p.bests.length > 80 ||
+      p.bests.length > 160 ||
       !Array.isArray(p.focus) ||
       p.focus.length > 20 ||
       !six(p.counts) ||
@@ -86,8 +87,8 @@ export function validateTrainingStore(s) {
       if (!object(b) || typeof b.key !== "string") throw new Error("best");
       const parts = b.key.split(":");
       if (
-        parts.length !== 3 ||
-        !validGame(...parts) ||
+        !(parts.length === 3 || (parts.length === 4 && parts[3] === "v2")) ||
+        !validGame(...parts.slice(0, 3)) ||
         parts[1] === "practice" ||
         !(b.period === "all" || (b.period && period(b.period))) ||
         boards.has(b.key + ":" + b.period) ||
@@ -410,6 +411,7 @@ export async function trainingRoute(request, env, session, D) {
       const run = JSON.parse(new TextDecoder().decode(unbase64url(data)));
       if (
         run.rules !== RULES_VERSION ||
+        run.difficulty !== DIFFICULTY_VERSION ||
         run.session !== session.jti ||
         run.origin !== new URL(request.url).origin ||
         run.expires <= now ||
@@ -463,7 +465,7 @@ export async function trainingRoute(request, env, session, D) {
     );
   }
   if (path === "/api/training/start") {
-    if (body.rules !== RULES_VERSION)
+    if (body.rules !== RULES_VERSION || body.difficulty !== DIFFICULTY_VERSION)
       fail(426, "GAME_UPDATE", "훈련소가 업데이트됐어요. 새로고침해 주세요.");
     const { game, mode, control, memberId } = body;
     if (
@@ -504,6 +506,7 @@ export async function trainingRoute(request, env, session, D) {
       );
     const run = {
       id: crypto.randomUUID(),
+      difficulty: DIFFICULTY_VERSION,
       rules: RULES_VERSION,
       session: session.jti,
       origin: new URL(request.url).origin,
@@ -634,6 +637,7 @@ export async function trainingRoute(request, env, session, D) {
                 const award = grant(teammate, 5, 15, now);
                 awards.push({ memberId: step.memberId, ...award });
                 const key = boardKey({
+                    difficulty: run.difficulty,
                     game: "coop",
                     mode: "relay",
                     control: step.control,
@@ -648,7 +652,12 @@ export async function trainingRoute(request, env, session, D) {
                     )?.score || 0) + 1;
                 updateBest(
                   teammate,
-                  { game: "coop", mode: "relay", control: step.control },
+                  {
+                    game: "coop",
+                    mode: "relay",
+                    control: step.control,
+                    difficulty: run.difficulty,
+                  },
                   {
                     score: controlAll,
                     duration: 0,

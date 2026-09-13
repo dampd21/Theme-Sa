@@ -807,3 +807,11 @@
     transition: none;
   }
 }
+
+/* Dense late-round boards stay touchable at 320px without horizontal overflow. */
+.puzzle-grid .rune-button {
+  min-width: 0;
+  aspect-ratio: auto;
+  min-height: 44px;
+  font-size: clamp(20px, 5vw, 30px);
+}

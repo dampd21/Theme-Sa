@@ -15,7 +15,7 @@ export const AVATARS = [
   "나무",
 ];
 export const ICONS = [
-  "符",
+  "✦",
   "☾",
   "🦊",
   "🐈",

@@ -1,3 +1,5 @@
+import { createAdventureUI } from "./adventure-ui.mjs";
+import { sealSVG } from "./adventure-art.mjs";
 import { createRoomUI } from "./room-ui.mjs";
 import { createTrainingUI } from "./training-ui.mjs";
 import {
@@ -91,12 +93,68 @@ const roomUI = createRoomUI({
       render();
   },
 });
+const adventureUI = createAdventureUI({
+  api,
+  getState: () => state,
+  getActor: () => actor,
+  esc,
+  toast,
+  requireActor,
+  needLogin,
+  refreshView: () => {
+    if (logged && !dirty()) render();
+  },
+});
+let profileChoice = "";
+function profileGate(force = false) {
+  if (!logged || (!force && actor && state.members.some((m) => m.id === actor)))
+    return;
+  const gate = $("profileGate");
+  if (gate.open || document.querySelector("dialog[open]")) return;
+  profileChoice = "";
+  $("profileGateConfirm").disabled = true;
+  $("profileGateChoices").innerHTML =
+    state.members
+      .map(
+        (m) =>
+          `<button data-profile-choice="${esc(m.id)}" aria-pressed="false">🌿 ${esc(m.name)}${m.id === state.leaderId ? " · 팀장" : ""}</button>`,
+      )
+      .join("") ||
+    '<p>아직 활동 프로필이 없습니다. 먼저 본인의 프로필을 등록해 주세요.</p><button id="profileBootstrap">첫 활동 프로필 등록하기</button>';
+  document.querySelectorAll("[data-profile-choice]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        profileChoice = b.dataset.profileChoice;
+        document
+          .querySelectorAll("[data-profile-choice]")
+          .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        $("profileGateConfirm").disabled = false;
+      }),
+  );
+  if ($("profileBootstrap"))
+    $("profileBootstrap").onclick = () => {
+      gate.close();
+      editMember();
+    };
+  gate.showModal();
+}
+$("profileGate").addEventListener("cancel", (e) => e.preventDefault());
+for (const id of ["editor", "review"])
+  $(id).addEventListener("close", () => queueMicrotask(() => profileGate()));
+$("profileGateConfirm").onclick = () => {
+  if (!state.members.some((m) => m.id === profileChoice)) return;
+  actor = profileChoice;
+  sessionStorage.setItem(sessionKey, actor);
+  $("profileGate").close();
+  render();
+};
+$("profileGateLogout").onclick = () => $("logoutButton").click();
 const person = (id) =>
   state.members.find((m) => m.id === id)?.name ||
   state.trash.find((t) => t.id === id)?.member.name ||
   (id ? "이전 팀원" : "미선택");
 const avatar = (m) =>
-  `<span class="avatar" style="color:${esc(m.color)}" aria-label="${esc(m.avatar)} 아바타">${esc(ICONS[AVATARS.indexOf(m.avatar)] || "符")}<span class="personal-mark">${esc(m.symbol || "符")}</span></span>`;
+  `<span class="avatar" style="color:${esc(m.color)}" aria-label="${esc(m.avatar)} 아바타">${esc(ICONS[AVATARS.indexOf(m.avatar)] || "✦")}<span class="personal-mark">${esc(/[\u4e00-\u9fff]/.test(m.symbol || "") ? "✦" : m.symbol || "✦")}</span></span>`;
 function toast(message, error = false) {
   $("toast").hidden = false;
   $("toast").textContent = message;
@@ -135,13 +193,15 @@ function dirty() {
     ($("editor").open && signature() !== editorBaseline) ||
     !!$("commentText")?.value.trim() ||
     trainingUI.isActive() ||
-    roomUI.isDirty()
+    roomUI.isDirty() ||
+    adventureUI.isDirty()
   );
 }
 function signature() {
   return JSON.stringify([...new FormData($("editorForm"))]);
 }
 function closeDialog(id, force = false) {
+  if (id === "profileGate" && !force) return;
   if (
     id === "editor" &&
     !force &&
@@ -205,7 +265,7 @@ async function api(path, method = "GET", body) {
   }
   return j;
 }
-async function enter() {
+async function enter(fresh = false) {
   let data;
   try {
     data = await api("archive");
@@ -223,7 +283,7 @@ async function enter() {
   state = normalize(data.state);
   sha = data.sha;
   logged = true;
-  actor = sessionStorage.getItem(sessionKey) || "";
+  actor = fresh ? "" : sessionStorage.getItem(sessionKey) || "";
   if (!state.members.some((m) => m.id === actor)) actor = "";
   $("loginScreen").hidden = true;
   $("application").hidden = false;
@@ -238,7 +298,7 @@ $("loginForm").onsubmit = async (e) => {
   $("sharedPassword").value = "";
   try {
     await api("login", "POST", { password });
-    await enter();
+    await enter(true);
   } catch (err) {
     $("loginError").textContent = err.message;
     $("loginError").hidden = false;
@@ -273,7 +333,7 @@ function needLogin() {
   $("reauthPassword").focus();
 }
 $("logoutButton").onclick = async () => {
-  if (busy || roomUI.isSaving()) return;
+  if (busy || roomUI.isSaving() || adventureUI.isSaving()) return;
   if (
     (dirty() || pending) &&
     !confirm("저장하지 않은 내용이 사라져요. 로그아웃할까요?")
@@ -285,6 +345,7 @@ $("logoutButton").onclick = async () => {
     logged = false;
     trainingUI.reset();
     roomUI.reset();
+    adventureUI.reset();
     state = emptyState();
     sha = null;
     pending = null;
@@ -329,7 +390,7 @@ function requireActor() {
     "먼저 위쪽에서 활동 프로필을 선택해 주세요. 팀원이 없다면 먼저 추가하세요.",
     true,
   );
-  $("actorSelect").focus();
+  profileGate(true);
   return false;
 }
 const navSections = [
@@ -339,6 +400,7 @@ const navSections = [
       ["dashboard", "대시보드", "◈"],
       ["members", "팀원 기록실", "◫"],
       ["room", "살아 있는 기록실", "☽"],
+      ["adventure", "기록실 너머 · 모험", "🧭"],
       ["training", "퇴마 훈련소", "⚔"],
       ["rankings", "훈련 랭킹", "♛"],
       ["organization", "직함 · 조직도", "⌘"],
@@ -412,12 +474,14 @@ function render() {
     )
     .join("");
   saving(busy);
+  queueMicrotask(() => profileGate());
   if (r.key === "dashboard") {
     trainingUI.renderDashboard();
     document
       .querySelector(".dash-hero")
-      ?.insertAdjacentHTML("afterend", roomUI.teaser());
-  } else if (r.key === "room") roomUI.render();
+      ?.insertAdjacentHTML("afterend", adventureUI.teaser() + roomUI.teaser());
+  } else if (r.key === "adventure") adventureUI.render();
+  else if (r.key === "room") roomUI.render();
   else if (r.key === "training") trainingUI.renderTraining(r.id);
   else if (r.key === "rankings") trainingUI.renderRanks(r.id);
   else if (r.key === "members") renderMembers();
@@ -438,7 +502,7 @@ function render() {
   }
 }
 window.addEventListener("hashchange", () => {
-  if (busy || roomUI.isSaving()) {
+  if (busy || roomUI.isSaving() || adventureUI.isSaving()) {
     history.replaceState(null, "", lastHash || "#members");
     toast("저장 중입니다. 잠시만 기다려 주세요.");
     return;
@@ -452,6 +516,7 @@ window.addEventListener("hashchange", () => {
   }
   if (trainingUI.isActive()) trainingUI.cancel(false);
   roomUI.cancel();
+  adventureUI.cancel();
   if ($("editor").open) closeDialog("editor", true);
   lastHash = location.hash;
   $("sidebar").classList.remove("open");
@@ -462,7 +527,7 @@ window.addEventListener("hashchange", () => {
 });
 $("refreshButton").onclick = () => refresh(false);
 async function refresh(silent) {
-  if (!logged || busy || roomUI.isSaving()) return;
+  if (!logged || busy || roomUI.isSaving() || adventureUI.isSaving()) return;
   if (trainingUI.isActive()) {
     if (silent) return;
     if (!confirm("진행 중인 게임을 중단하고 최신 기록을 불러올까요?")) return;
@@ -484,8 +549,13 @@ async function refresh(silent) {
     )
   )
     return;
-  if (!silent) roomUI.cancel();
+  if (!silent) {
+    roomUI.cancel();
+    adventureUI.cancel();
+  }
   if (["room", "dashboard"].includes(route().key)) roomUI.load(!silent);
+  if (["adventure", "dashboard"].includes(route().key))
+    adventureUI.load(!silent);
   trainingUI.load(!silent);
   const currentEpoch = epoch,
     revision = sha;
@@ -495,7 +565,8 @@ async function refresh(silent) {
       currentEpoch !== epoch ||
       !logged ||
       revision !== sha ||
-      roomUI.isDirty()
+      roomUI.isDirty() ||
+      adventureUI.isDirty()
     )
       return;
     if (
@@ -856,7 +927,7 @@ function editMember(id = null, copy = false) {
         joinedOn: today(),
         avatar: "부적",
         color: "#b8dfb3",
-        symbol: "符",
+        symbol: "✦",
         status: "활동 중",
         rank: "수습",
       };
@@ -1005,7 +1076,7 @@ function renderMember(id) {
       .map((x) => badge(x, true))
       .join(
         "",
-      )}${badge(m.rank)}${badge(m.status)}</div></div></div><div class="details-grid">${detailItem("소속 조", m.squad)}${detailItem("역할", m.position)}${detailItem("가입일", m.joinedOn)}${detailItem("함께한 날", days > 0 ? days + "일째" : "아직 미입력")}${detailItem("성별", m.gender)}${detailItem("나이 · 출생 연도", [m.age ? m.age + "세" : "", m.birthYear ? m.birthYear + "년" : ""].filter(Boolean).join(" · "))}${detailItem("학교", m.school)}${detailItem("학년 · 반", [m.grade ? m.grade + "학년" : "", m.classroom ? m.classroom + "반" : ""].join(" "))}${detailItem("개인 문양", m.symbol)}${state.customFields.map((f) => detailItem(f.label, m.custom.find((v) => v.id === f.id)?.value)).join("")}</div><h3>우리만의 메모</h3><p class="prose">${esc(m.memo || "아직 메모가 없어요.")}</p></section><div class="section-title"><h2>능력 기록</h2></div>${
+      )}${badge(m.rank)}${badge(m.status)}</div></div></div><div class="details-grid">${detailItem("소속 조", m.squad)}${detailItem("역할", m.position)}${detailItem("가입일", m.joinedOn)}${detailItem("함께한 날", days > 0 ? days + "일째" : "아직 미입력")}${detailItem("성별", m.gender)}${detailItem("나이 · 출생 연도", [m.age ? m.age + "세" : "", m.birthYear ? m.birthYear + "년" : ""].filter(Boolean).join(" · "))}${detailItem("학교", m.school)}${detailItem("학년 · 반", [m.grade ? m.grade + "학년" : "", m.classroom ? m.classroom + "반" : ""].join(" "))}${detailItem("개인 문양", /[\u4e00-\u9fff]/.test(m.symbol || "") ? "✦" : m.symbol)}${state.customFields.map((f) => detailItem(f.label, m.custom.find((v) => v.id === f.id)?.value)).join("")}</div><h3>우리만의 메모</h3><p class="prose">${esc(m.memo || "아직 메모가 없어요.")}</p></section><div class="section-title"><h2>능력 기록</h2></div>${
       m.abilities
         .map((name) => {
           const t = m.talents.find((t) => t.name === name);

@@ -120,7 +120,7 @@ export const CATALOG = {
     desc: "첫 임무와 소중한 순간을 배지와 칭호로 기록해요.",
     fields: [
       ["title", "업적 · 칭호 이름", "text", true],
-      ["category", "배지 모양", "select", ["✦", "♛", "☾", "符", "⚔", "✿"]],
+      ["category", "배지 모양", "select", ["✦", "♛", "☾", "✦", "⚔", "✿"]],
       ["body", "설명 · 획득 조건", "textarea"],
       ["participants", "칭호를 부여할 팀원", "members"],
       ["date", "획득 날짜", "date"],

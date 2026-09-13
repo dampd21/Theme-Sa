@@ -1,3 +1,4 @@
+const { chooseProfile } = require("./profile.cjs");
 const { chromium } = require("playwright"),
   assert = require("node:assert/strict"),
   { spawn } = require("node:child_process"),
@@ -65,7 +66,8 @@ process.on("exit", () => server?.kill());
     });
     return r.json();
   }, normalize(s));
-  await page.locator("#refreshButton").click();
+  await page.reload({ waitUntil: "networkidle" });
+  await chooseProfile(page, "a");
   await page
     .locator("#actorSelect option[value=a]")
     .waitFor({ state: "attached" });
@@ -339,6 +341,7 @@ process.on("exit", () => server?.kill());
     .fill("Local-worker-test-password-9284");
   await mobile.locator("#connectButton").tap();
   await mobile.locator("#application").waitFor();
+  await chooseProfile(mobile, "a");
   await mobile.locator("#actorSelect").selectOption("a");
   await mobile.evaluate(() => (location.hash = "room/art"));
   await mobile.locator("#inkCanvas").waitFor();
@@ -373,15 +376,13 @@ process.on("exit", () => server?.kill());
       "true",
   );
   await mobile.evaluate(() =>
-    document
-      .querySelector("#chainMode")
-      .dispatchEvent(
-        new PointerEvent("click", {
-          bubbles: true,
-          detail: 1,
-          pointerType: "touch",
-        }),
-      ),
+    document.querySelector("#chainMode").dispatchEvent(
+      new PointerEvent("click", {
+        bubbles: true,
+        detail: 1,
+        pointerType: "touch",
+      }),
+    ),
   );
   assert(
     (await mobile.locator("#sentenceMode").getAttribute("aria-pressed")) ===
@@ -428,6 +429,9 @@ process.on("exit", () => server?.kill());
         })
       : route.continue();
   });
+  await failed.addInitScript(() =>
+    sessionStorage.setItem("theme-sa-activity-profile", "a"),
+  );
   await failed.goto(base + "/#room", { waitUntil: "networkidle" });
   await failed.locator("#roomReload").waitFor();
   await failed.waitForTimeout(200);

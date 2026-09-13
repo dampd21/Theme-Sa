@@ -1,3 +1,4 @@
+const { chooseProfile } = require("./profile.cjs");
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const { spawn } = require("node:child_process");
@@ -76,7 +77,8 @@ process.on("exit", () => server?.kill());
     { state: normalize(s), sha: initial.sha, clientVersion: 2 },
   );
   assert.equal(seeded.status, 200);
-  await page.locator("#refreshButton").click();
+  await page.reload({ waitUntil: "networkidle" });
+  await chooseProfile(page, "a");
   await page
     .locator("#actorSelect option[value=a]")
     .waitFor({ state: "attached" });
@@ -175,7 +177,7 @@ process.on("exit", () => server?.kill());
   assert.equal((await overview()).profiles[0].xp[0], 30);
   run = await start("defense");
   let elapsed = 0;
-  for (const time of rules.attackTimes(run.seed)) {
+  for (const time of rules.attackTimes(run.seed, run.difficulty || 1)) {
     await advance(time - elapsed);
     await page.keyboard.press("Space");
     elapsed = time;
@@ -187,7 +189,7 @@ process.on("exit", () => server?.kill());
   run = await start("sense");
   for (let round = 0; round < 20; round++) {
     await advance(200);
-    const target = rules.puzzle(run.seed, round).target;
+    const target = rules.puzzle(run.seed, round, run.difficulty || 1).target;
     await page
       .locator(`[data-puzzle="${target}"]`)
       .dispatchEvent("pointerdown", {
@@ -219,7 +221,7 @@ process.on("exit", () => server?.kill());
   await result();
   assert(
     (await overview()).profiles[0].bests.some(
-      (b) => b.key === "agility:standard:pc",
+      (b) => b.key === "agility:standard:pc:v2",
     ),
   );
   console.log("Dodge canvas replay passed.");
@@ -233,7 +235,7 @@ process.on("exit", () => server?.kill());
   await result();
   assert(
     (await overview()).profiles[0].bests.some(
-      (b) => b.key === "survival:growth:pc",
+      (b) => b.key === "survival:growth:pc:v2",
     ),
   );
   console.log("RPG canvas replay and real training stats passed.");
@@ -351,6 +353,7 @@ process.on("exit", () => server?.kill());
     .fill("Local-worker-test-password-9284");
   await mobile.locator("#connectButton").tap();
   await mobile.locator("#application").waitFor();
+  await chooseProfile(mobile, "a");
   await mobile.locator("#actorSelect").selectOption("a");
   await mobile.clock.install();
   await mobile.clock.pauseAt(new Date(Date.now() + 1000));
@@ -424,14 +427,48 @@ process.on("exit", () => server?.kill());
   );
   const touchProfile = touchData.profiles.find((p) => p.memberId === "a");
   assert.equal(touchProfile.xp[0], 60);
-  assert(touchProfile.bests.some((b) => b.key === "focus:visible:touch"));
+  assert(touchProfile.bests.some((b) => b.key === "focus:visible:touch:v2"));
   assert(
-    touchProfile.bests.some((b) => b.key === "agility:standard:touch"),
+    touchProfile.bests.some((b) => b.key === "agility:standard:touch:v2"),
     JSON.stringify({
       keys: touchProfile.bests.map((b) => b.key),
       text: await mobile.locator("#view").innerText(),
     }),
   );
+  await mobile.setViewportSize({ width: 320, height: 780 });
+  await mobile.evaluate(() => (location.hash = "training/sense"));
+  await mobile.locator("#startGame").waitFor();
+  const senseStart = mobile.waitForResponse((r) =>
+    r.url().endsWith("/api/training/start"),
+  );
+  await mobile.locator("#startGame").tap();
+  const senseRun = (await (await senseStart).json()).run;
+  await mobile.locator("#puzzleGrid").waitFor();
+  await touchContext.request.post(base + "/_qa/advance", {
+    data: { delta: 20000 },
+  });
+  for (let round = 0; round < 20; round++) {
+    await mobile.clock.runFor(250);
+    assert(
+      await mobile.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "Late-round touch puzzle overflow",
+    );
+    if (round === 15) {
+      assert.equal(await mobile.locator("[data-puzzle]").count(), 25);
+      await mobile.screenshot({
+        path: path.join(shots, "sense-25-touch-320.png"),
+        fullPage: true,
+      });
+    }
+    await mobile
+      .locator(
+        '[data-puzzle="' + rules.puzzle(senseRun.seed, round, 2).target + '"]',
+      )
+      .tap();
+  }
+  await mobile.locator(".game-result #againGame").waitFor();
   await mobile.locator("#logoutButton").tap({ force: true });
   await touchContext.close();
   console.log(

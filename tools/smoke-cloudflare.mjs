@@ -40,12 +40,28 @@ async function verifyLiveScreens(url, cookie, memberId) {
     await page.goto(url + "/#dashboard", { waitUntil: "networkidle" });
     await page.locator("#application").waitFor({ state: "visible" });
     await page.locator(".dash-hero").waitFor();
+    await page.locator("#profileGate").waitFor({ state: "visible" });
+    if (!memberId) {
+      await page.locator("#profileBootstrap").waitFor();
+      return;
+    }
+    const profile = page
+      .locator("[data-profile-choice]")
+      .filter({ hasText: "" });
+    await profile.evaluateAll((buttons, id) => {
+      const button = buttons.find((b) => b.dataset.profileChoice === id);
+      if (!button) throw Error("Missing activity profile");
+      button.click();
+    }, memberId);
+    await page.locator("#profileGateConfirm").click();
+    await page.locator("#profileGate").waitFor({ state: "hidden" });
     for (const width of [1440, 360]) {
       await page.setViewportSize({ width, height: 850 });
       for (const hash of [
         "dashboard",
         "training",
         "rankings",
+        "adventure",
         "room",
         "room/mystery",
         "room/words",
@@ -54,21 +70,24 @@ async function verifyLiveScreens(url, cookie, memberId) {
         ...(memberId ? ["member/" + encodeURIComponent(memberId)] : []),
       ]) {
         await page.evaluate((h) => (location.hash = h), hash);
-        const selector = hash.startsWith("room")
-          ? {
-              room: ".room-stage",
-              "room/mystery": ".room-case-steps",
-              "room/words": "#wordInput",
-              "room/art": "#inkCanvas",
-              "room/maze": "#mazeMap",
-            }[hash]
-          : hash === "dashboard"
-            ? ".dash-hero"
-            : hash === "training"
-              ? ".game-grid"
-              : hash === "rankings"
-                ? ".ranking-toolbar"
-                : ".training-profile";
+        const selector =
+          hash === "adventure"
+            ? ".adv-missions"
+            : hash.startsWith("room")
+              ? {
+                  room: ".room-stage",
+                  "room/mystery": ".room-case-steps",
+                  "room/words": "#wordInput",
+                  "room/art": "#inkCanvas",
+                  "room/maze": "#mazeMap",
+                }[hash]
+              : hash === "dashboard"
+                ? ".dash-hero"
+                : hash === "training"
+                  ? ".game-grid"
+                  : hash === "rankings"
+                    ? ".ranking-toolbar"
+                    : ".training-profile";
         await page.locator(selector).waitFor();
         if (
           hash === "training" &&
@@ -156,6 +175,8 @@ async function main() {
     throw new Error("Anonymous training access did not return 401.");
   if ((await request("/api/room")).response.status !== 401)
     throw new Error("Anonymous room access was not denied.");
+  if ((await request("/api/adventure")).response.status !== 401)
+    throw new Error("Anonymous adventure access was not denied.");
   let cookie = "",
     login;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -252,12 +273,25 @@ async function main() {
             : "unexpected response") +
           ").",
       );
+    const adventure = await request("/api/adventure", "GET", undefined, cookie);
+    if (
+      !adventure.response.ok ||
+      adventure.json.version !== 1 ||
+      !Array.isArray(adventure.json.runs) ||
+      "receipts" in adventure.json
+    )
+      throw new Error(
+        "Live protected adventure read failed (HTTP " +
+          adventure.response.status +
+          ").",
+      );
     for (const payload of [
       login.json,
       session.json,
       archive.json,
       training.json,
       room.json,
+      adventure.json,
     ])
       if (
         process.env.DATA_REPO_TOKEN &&

@@ -1,3 +1,4 @@
+const { chooseProfile } = require("./profile.cjs");
 const path = require("node:path");
 const fs = require("node:fs");
 const { spawn } = require("node:child_process");
@@ -80,7 +81,7 @@ const base = "http://127.0.0.1:3001";
     return page.evaluate(() => fetch("/api/archive").then((r) => r.json()));
   }
   await nav("members");
-  await page.locator("#addMember").click();
+  await page.locator("#profileBootstrap").click();
   await page.locator("[name=name]").fill("가상 팀장");
   await page.locator("[name=codeName]").fill("월영");
   await page.locator("[name=intro]").fill("차분한 결계 담당");
@@ -96,6 +97,7 @@ const base = "http://127.0.0.1:3001";
   assert.equal(remote.state.version, 2);
   assert.equal(remote.state.members.length, 1);
   assert.equal(remote.state.members[0].codeName, "월영");
+  await chooseProfile(page, leader);
   await page.locator("#actorSelect").selectOption(leader);
   await page.locator("[data-copy-member]").click();
   await page.locator("[name=name]").fill("가상 부팀장");

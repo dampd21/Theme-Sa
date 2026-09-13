@@ -1,3 +1,4 @@
+import { adventureRoute } from "./adventure.mjs";
 import { roomRoute } from "./room.mjs";
 import { trainingRoute } from "./training.mjs";
 import { normalize, differences, purgeExpired } from "../site/model.mjs";
@@ -638,12 +639,15 @@ async function apiRoute(request, env) {
   const trainingPath =
     path === "/api/training" || path.startsWith("/api/training/");
   const roomPath = path === "/api/room";
-  if (path !== "/api/archive" && !trainingPath && !roomPath)
+  const adventurePath = path === "/api/adventure";
+  if (path !== "/api/archive" && !trainingPath && !roomPath && !adventurePath)
     fail(404, "NOT_FOUND", "요청한 기능을 찾을 수 없어요.");
   if (
-    !(trainingPath || roomPath ? ["GET", "POST"] : ["GET", "PUT"]).includes(
-      method,
-    )
+    !(
+      trainingPath || roomPath || adventurePath
+        ? ["GET", "POST"]
+        : ["GET", "PUT"]
+    ).includes(method)
   )
     fail(405, "METHOD", "지원하지 않는 요청이에요.");
   if (!env.API_RATE_LIMITER?.limit)
@@ -651,6 +655,16 @@ async function apiRoute(request, env) {
   if (!(await env.API_RATE_LIMITER.limit({ key: session.jti })).success)
     fail(429, "API_RATE_LIMIT", "요청이 많아요. 잠시 후 다시 시도해 주세요.", {
       "Retry-After": "60",
+    });
+  if (adventurePath)
+    return adventureRoute(request, env, session, {
+      fail,
+      json,
+      github,
+      privateRepo,
+      filePath,
+      getArchive,
+      readJson,
     });
   if (roomPath)
     return roomRoute(request, env, session, {

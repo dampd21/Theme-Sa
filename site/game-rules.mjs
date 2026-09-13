@@ -1,5 +1,16 @@
 // Shared, deterministic rules. Scores and XP are recalculated by the Worker.
 export const RULES_VERSION = 1;
+export const DIFFICULTY_VERSION = 2;
+export const difficultyPhase = (t) => Math.min(6, 1 + Math.floor(t / 30000));
+export const guardWindow = (round, difficulty = 2) =>
+  difficulty === 2
+    ? {
+        perfect: Math.max(42, 90 - round * 2.5),
+        hit: Math.max(95, 220 - round * 6),
+      }
+    : { perfect: 90, hit: 220 };
+export const memoryBeat = (length, difficulty = 2) =>
+  difficulty === 2 ? Math.max(270, 540 - (length - 3) * 38) : 500;
 export const ABILITIES = [
   "집중력",
   "기동력",
@@ -51,7 +62,7 @@ export const GAMES = {
   purify: {
     name: "부적 순서 잇기",
     ability: 4,
-    icon: "符",
+    icon: "✦",
     tag: "MEMORY",
     desc: "빛나는 문양의 순서를 기억하고 정화를 완성하세요.",
     modes: [["standard", "순서 기억"]],
@@ -115,17 +126,23 @@ export function random(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-export function attackTimes(seed) {
+export function attackTimes(seed, difficulty = 1) {
   const rng = random(seed);
   let t = 1500;
   return Array.from(
     { length: 20 },
-    () => (t += 1150 + Math.floor(rng() * 450)),
+    (_, i) =>
+      (t +=
+        (difficulty === 2 ? Math.max(590, 1450 - i * 43) : 1150) +
+        Math.floor(rng() * (difficulty === 2 ? 330 : 450))),
   );
 }
-export function puzzle(seed, round) {
+export function puzzle(seed, round, difficulty = 1) {
   const rng = random((seed + Math.imul(round + 1, 7919)) >>> 0),
-    size = Math.min(16, 6 + Math.floor(round / 3) * 2);
+    size =
+      difficulty === 2
+        ? Math.min(25, 6 + Math.floor(round / 2) * 3)
+        : Math.min(16, 6 + Math.floor(round / 3) * 2);
   return {
     size,
     target: Math.floor(rng() * size),
@@ -149,7 +166,10 @@ export function memoryInfo(run, actions) {
     last = 0;
   for (const e of actions) {
     if (failed || complete) throw new Error("종료 이후의 입력입니다.");
-    if (e.t < roundStart + length * 500 + 650)
+    if (
+      e.t <
+      roundStart + length * memoryBeat(length, run.difficulty || 1) + 650
+    )
       throw new Error("문양을 보여주는 동안에는 입력할 수 없어요.");
     if (e.index !== seq[index]) {
       failed = true;
@@ -177,7 +197,9 @@ export function memoryInfo(run, actions) {
     complete,
     last,
     roundStart,
-    watchUntil: roundStart + length * 500 + 650,
+    beat: memoryBeat(length, run.difficulty || 1),
+    watchUntil:
+      roundStart + length * memoryBeat(length, run.difficulty || 1) + 650,
     seq,
   };
 }
@@ -192,6 +214,7 @@ export function createSim(run, visual = true) {
   return {
     visual,
     game: run.game,
+    difficulty: run.difficulty || 1,
     t: 0,
     rng: random(run.seed),
     stats: stat,
@@ -229,23 +252,53 @@ export function stepSim(s, target = { x: 240, y: 240 }) {
       x = edge === 0 ? -12 : edge === 1 ? 492 : v,
       y = edge === 2 ? -12 : edge === 3 ? 492 : v,
       angle = Math.atan2(p.y - y, p.x - x),
-      velocity = s.game === "agility" ? 72 + s.t / 2500 : 24 + s.t / 8000;
+      velocity =
+        s.difficulty === 2
+          ? s.game === "agility"
+            ? 100 + s.t / 650
+            : 40 + s.t / 2600
+          : s.game === "agility"
+            ? 72 + s.t / 2500
+            : 24 + s.t / 8000;
     s.enemies.push({
       x,
       y,
       vx: Math.cos(angle) * velocity,
       vy: Math.sin(angle) * velocity,
       speed: velocity,
-      hp: s.game === "agility" ? 1 : 1 + Math.floor(s.t / 75000),
+      hp:
+        s.game === "agility"
+          ? 1
+          : 1 + Math.floor(s.t / (s.difficulty === 2 ? 40000 : 75000)),
       born: s.t,
-      warning: 600 + s.stats[3] * 6,
+      warning:
+        (s.difficulty === 2 ? Math.max(230, 650 - s.t / 260) : 600) +
+        s.stats[3] * 6,
       r: 8 + (s.game === "survival" ? 4 : 0),
     });
+    if (s.difficulty === 2 && s.t >= 30000) {
+      const base = s.enemies.at(-1),
+        count = s.t >= 90000 ? 2 : 1;
+      for (let j = 0; j < count; j++) {
+        const x = j ? base.y : WORLD - base.x,
+          y = j ? WORLD - base.x : WORLD - base.y,
+          ang = Math.atan2(p.y - y, p.x - x);
+        s.enemies.push({
+          ...base,
+          x,
+          y,
+          vx: Math.cos(ang) * velocity,
+          vy: Math.sin(ang) * velocity,
+          r: base.r + (s.game === "survival" && s.t >= 60000 ? 3 : 0),
+        });
+      }
+    }
     s.nextSpawn =
       s.t +
       Math.max(
         s.game === "agility" ? 260 : 370,
-        (s.game === "agility" ? 1100 : 1300) - s.t / 130,
+        (s.game === "agility" ? 1100 : 1300) -
+          s.t / (s.difficulty === 2 ? 90 : 130),
       );
   }
   for (const e of s.enemies) {
@@ -344,15 +397,16 @@ export function evaluate(run, body) {
     eligible = duration >= 4000 && duration <= 12000;
   } else if (run.game === "defense") {
     checkActions(actions, 80, duration);
-    const attacks = attackTimes(run.seed);
+    const attacks = attackTimes(run.seed, run.difficulty || 1);
     if (duration !== attacks.at(-1) + 400)
       throw new Error("20회 방어를 완료해 주세요.");
     const used = new Set();
     let perfect = 0,
       hit = 0;
-    for (const t of attacks) {
+    for (const [round, t] of attacks.entries()) {
+      const window = guardWindow(round, run.difficulty || 1);
       let best = -1,
-        error = 221;
+        error = window.hit + 1;
       actions.forEach((e, i) => {
         if (!used.has(i) && Math.abs(e.t - t) < error) {
           error = Math.abs(e.t - t);
@@ -362,8 +416,11 @@ export function evaluate(run, body) {
       if (best >= 0) {
         used.add(best);
         hit++;
-        if (error <= 90) perfect++;
-        score += error <= 90 ? 5000 : Math.round(3500 - (error - 90) * 15);
+        if (error <= window.perfect) perfect++;
+        score +=
+          error <= window.perfect
+            ? 5000
+            : Math.round(3500 - (error - window.perfect) * 15);
       }
     }
     score = Math.max(0, score - (actions.length - hit) * 500);
@@ -382,11 +439,12 @@ export function evaluate(run, body) {
         round >= 20 ||
         !Number.isInteger(e.index) ||
         e.index < 0 ||
-        e.index >= puzzle(run.seed, round).size
+        e.index >= puzzle(run.seed, round, run.difficulty || 1).size
       )
         throw new Error("관찰 입력이 올바르지 않아요.");
       last = e.t;
-      if (e.index === puzzle(run.seed, round).target) round++;
+      if (e.index === puzzle(run.seed, round, run.difficulty || 1).target)
+        round++;
       else wrong++;
     }
     if (round < 20 && duration !== 45000)
@@ -476,7 +534,13 @@ export function periodKeys(now = Date.now()) {
   week.setUTCDate(week.getUTCDate() - ((week.getUTCDay() + 6) % 7));
   return { day, week: week.toISOString().slice(0, 10) };
 }
-export const boardKey = (run) => [run.game, run.mode, run.control].join(":");
+export const boardKey = (run) =>
+  [
+    run.game,
+    run.mode,
+    run.control,
+    ...(run.difficulty === 2 ? ["v2"] : []),
+  ].join(":");
 export function rankRows(
   data,
   members,
@@ -485,8 +549,9 @@ export function rankRows(
   control,
   period = "all",
   week = periodKeys().week,
+  difficulty = 1,
 ) {
-  const key = [game, mode, control].join(":");
+  const key = boardKey({ game, mode, control, difficulty });
   const secondary = (r) =>
     game === "sense" ? r.duration : game === "survival" ? -(r.metric || 0) : 0;
   const rows = members
