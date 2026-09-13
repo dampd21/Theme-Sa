@@ -27,8 +27,20 @@ async function verifyLiveScreens(url, cookie, memberId) {
     const page = await context.newPage();
     page.setDefaultTimeout(30000);
     let errors = 0,
-      mutations = 0;
+      mutations = 0,
+      externalRequests = 0,
+      consoleErrors = 0;
     page.on("pageerror", () => errors++);
+    page.on("console", (m) => {
+      if (m.type() === "error") consoleErrors++;
+    });
+    page.on("request", (r) => {
+      if (
+        /^https?:/.test(r.url()) &&
+        new URL(r.url()).origin !== new URL(url).origin
+      )
+        externalRequests++;
+    });
     page.on("dialog", (d) => d.dismiss());
     await page.route("**/api/**", (route) => {
       if (route.request().method() !== "GET") {
@@ -43,11 +55,12 @@ async function verifyLiveScreens(url, cookie, memberId) {
     await page.locator("#profileGate").waitFor({ state: "visible" });
     if (!memberId) {
       await page.locator("#profileBootstrap").waitFor();
-      return;
+      console.log(
+        "LIVE_READ_ONLY_SCREENS=0; NO_EXISTING_PROFILE; BOOTSTRAP_CHECKED",
+      );
+      return 0;
     }
-    const profile = page
-      .locator("[data-profile-choice]")
-      .filter({ hasText: "" });
+    const profile = page.locator("[data-profile-choice]");
     await profile.evaluateAll((buttons, id) => {
       const button = buttons.find((b) => b.dataset.profileChoice === id);
       if (!button) throw Error("Missing activity profile");
@@ -55,29 +68,50 @@ async function verifyLiveScreens(url, cookie, memberId) {
     }, memberId);
     await page.locator("#profileGateConfirm").click();
     await page.locator("#profileGate").waitFor({ state: "hidden" });
-    for (const width of [1440, 360]) {
-      await page.setViewportSize({ width, height: 850 });
-      for (const hash of [
-        "dashboard",
-        "training",
-        "rankings",
-        "adventure",
-        "village",
-        "party",
-        "party/settings",
-        "room",
+    const catalogKeys = await page.evaluate(async () =>
+      Object.keys((await import("/catalog.mjs")).CATALOG),
+    );
+    const navHashes = await page
+      .locator("#navigation a")
+      .evaluateAll((links) =>
+        links.map((a) => a.getAttribute("href").slice(1)),
+      );
+    const hashes = [
+      ...new Set([
+        ...navHashes,
         "room/mystery",
         "room/words",
         "room/art",
         "room/maze",
+        "party/settings",
         ...(memberId ? ["member/" + encodeURIComponent(memberId)] : []),
-      ]) {
-        await page.evaluate((h) => (location.hash = h), hash);
+      ]),
+    ];
+    let screenChecks = 0;
+    const checkLayout = async () => {
+      if (
+        !(await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ))
+      )
+        throw new Error();
+      if (await page.locator(".world-error, .party-error").count())
+        throw new Error();
+      screenChecks++;
+    };
+    const go = async (hash) => {
+      await page.evaluate((h) => (location.hash = h), hash);
+      await page.waitForFunction((h) => location.hash === "#" + h, hash);
+    };
+    for (const width of [1440, 360]) {
+      await page.setViewportSize({ width, height: 850 });
+      for (const hash of hashes) {
+        await go(hash);
         const selector =
           hash === "village"
             ? ".world-room"
             : hash.startsWith("party")
-              ? ".party-cup-grid, #partyFields .panel"
+              ? "#partyFields .panel"
               : hash === "adventure"
                 ? ".adv-missions"
                 : hash.startsWith("room")
@@ -94,25 +128,98 @@ async function verifyLiveScreens(url, cookie, memberId) {
                       ? ".game-grid"
                       : hash === "rankings"
                         ? ".ranking-toolbar"
-                        : ".training-profile";
+                        : hash.startsWith("member/")
+                          ? ".training-profile"
+                          : hash === "members"
+                            ? "#search"
+                            : hash === "organization"
+                              ? ".org-tree"
+                              : hash === "settings"
+                                ? "#renameTeam"
+                                : hash === "guide"
+                                  ? "#exportArchive"
+                                  : catalogKeys.includes(hash)
+                                    ? "#addRecord"
+                                    : "#view .page-head";
         await page.locator(selector).first().waitFor();
         if (
           hash === "training" &&
           (await page.locator(".game-card").count()) !== 7
         )
           throw new Error();
-        if (
-          !(await page.evaluate(
-            () => document.documentElement.scrollWidth <= innerWidth,
-          ))
-        )
-          throw new Error();
+        await checkLayout();
       }
+      await go("village");
+      await page.locator(".world-tabs").waitFor();
+      for (const tab of [
+        "home",
+        "town",
+        "mail",
+        "atelier",
+        "games",
+        "together",
+        "quests",
+        "journal",
+      ]) {
+        await page.locator('[data-wtab="' + tab + '"]').click();
+        await page
+          .locator('[data-wtab="' + tab + '"][aria-pressed="true"]')
+          .waitFor();
+        await page
+          .locator("#worldFields .panel, #worldFields .world-map")
+          .first()
+          .waitFor();
+        await checkLayout();
+      }
+      await page.locator('[data-world="settings"]').click();
+      await page.locator("#worldMotion").waitFor();
+      await checkLayout();
+      // Return to home without a mutation, so the next viewport starts identically.
+      await page.locator('[data-wtab="home"]').click();
+      await page.locator(".world-room").waitFor();
+      await go("party");
+      await page.locator('[data-tab="luck"]').click();
+      await page.locator("#luckPanel").waitFor();
+      for (const game of [
+        "ladder",
+        "wheel",
+        "draw",
+        "teams",
+        "order",
+        "bomb",
+        "dice",
+        "coin",
+      ]) {
+        await page.locator('[data-game="' + game + '"]').click();
+        await page
+          .locator('[data-game="' + game + '"][aria-pressed="true"]')
+          .waitFor();
+        await page.locator("#luckFields").waitFor();
+        await checkLayout();
+      }
+      await page.locator('[data-tab="cups"]').click();
+      await page.locator(".party-cup-grid").waitFor();
     }
-    if (errors || mutations) throw new Error();
+    console.log(
+      "LIVE_READ_ONLY_SCREENS=" +
+        screenChecks +
+        "; NAV_ROUTES=" +
+        hashes.length +
+        "; VIEWPORTS=1440,360; SERVER_MUTATIONS=" +
+        mutations +
+        "; JS_ERRORS=" +
+        errors +
+        "; CONSOLE_ERRORS=" +
+        consoleErrors +
+        "; EXTERNAL_REQUESTS=" +
+        externalRequests,
+    );
+    if (errors || mutations || consoleErrors || externalRequests)
+      throw new Error();
+    return screenChecks;
   } catch {
     throw new Error(
-      "Read-only live dashboard/training/ranking screen check failed. No record contents were logged.",
+      "Read-only live navigation/village/party screen check failed. No record contents were logged.",
     );
   } finally {
     if (browser) await browser.close();
@@ -226,7 +333,8 @@ async function main() {
       "New deployment session is not consistent yet; waiting before a fresh read-only verification session.",
     );
   }
-  let archiveStatus = "verified";
+  let archiveStatus = "verified",
+    screenChecks = 0;
   try {
     const session = await request("/api/session", "GET", undefined, cookie);
     if (!session.response.ok || !session.json.authenticated)
@@ -337,17 +445,24 @@ async function main() {
           "Server credential unexpectedly appeared in an API response.",
         );
     if (archiveStatus === "verified")
-      await verifyLiveScreens(url, cookie, archive.json.state.members[0]?.id);
+      screenChecks =
+        (await verifyLiveScreens(
+          url,
+          cookie,
+          archive.json.state.members[0]?.id,
+        )) || 0;
     // Read-only smoke check: never create, edit or delete production team records in CI.
   } finally {
     await request("/api/logout", "POST", {}, cookie);
   }
-  const summary = `## Cloudflare 홈페이지\n\n[기록실 열기](${url}/)\n\n- 실제 홈페이지, 비밀번호 로그인, 보호된 쿠키와 세션 확인 완료\n- 비로그인 기록·훈련 접근 차단 및 보호된 훈련 읽기 확인\n- 비공개 기록 읽기: ${archiveStatus}\n- 운영 기록을 수정하지 않는 점검입니다. 첫 저장은 홈페이지에서 확인하세요.\n- 새 배포는 이전 로그인 세션을 만료시킵니다.\n- 새 주소가 확인되기 전에는 기존 GitHub Pages를 삭제하지 마세요.\n`;
+  const summary = `## Cloudflare 홈페이지\n\n[기록실 열기](${url}/)\n\n- 실제 홈페이지, 비밀번호 로그인, 보호된 쿠키와 세션 확인 완료\n- 여섯 API의 비로그인 접근 차단 및 보호된 읽기 확인\n- PC/모바일 읽기 전용 화면 점검: ${screenChecks}회 (프로필이 없으면 전체 화면 점검 생략)\n- 비공개 기록 읽기: ${archiveStatus}\n- 운영 기록을 수정하지 않는 점검입니다. 첫 저장은 홈페이지에서 확인하세요.\n- 새 배포는 이전 로그인 세션을 만료시킵니다.\n- 새 주소가 확인되기 전에는 기존 GitHub Pages를 삭제하지 마세요.\n`;
   if (process.env.GITHUB_STEP_SUMMARY)
     await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
   console.log("LIVE_SITE_URL=" + url + "/");
   console.log(
-    "Live password login, session cookie, anonymous denial archive/training/room reads and read-only desktop/mobile dashboard and room screens checked. No production records were modified.",
+    "Live password login, protected session and six protected APIs checked. Read-only desktop/mobile screen checks: " +
+      screenChecks +
+      ". No production records were modified.",
   );
 }
 main().catch((error) => {

@@ -81,11 +81,11 @@ process.on("exit", () => server?.kill());
   await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, checker);
   const { verifyLiveScreens } = await import(pathToFileURL(file).href);
-  await verifyLiveScreens(url, cookie, "synthetic-member");
+  assert((await verifyLiveScreens(url, cookie, "synthetic-member")) >= 98);
   assert.equal((await (await req("archive")).json()).sha, before);
   server.kill();
   console.log(
-    "PASS: actual production read-only screen checker, required profile choice, all room/adventure/training routes at desktop/mobile widths, synthetic data only.",
+    "PASS: actual production read-only screen checker, required profile choice, every navigation route, village tabs/settings and eight luck-game settings at desktop/mobile widths, synthetic data only.",
   );
 })().catch((e) => {
   console.error(e.message);
